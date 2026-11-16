@@ -13,6 +13,9 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
+from datetime import date
+
+from plataforma import arquivos as arq
 from plataforma import conectores as con
 from plataforma.armazenamento import Armazenamento
 from plataforma.servidor import criar_servidor
@@ -20,6 +23,18 @@ from plataforma.servidor import criar_servidor
 
 class SiteFalso(BaseHTTPRequestHandler):
     pedidos = []
+    conteudo_zip = b"PK-versao-1"
+
+    def do_HEAD(self):
+        SiteFalso.pedidos.append(("HEAD " + urlsplit(self.path).path, {}, {}))
+        self.send_response(200)
+        if self.path.startswith("/arquivos/com_etag"):
+            self.send_header("ETag", '"%s"' % len(SiteFalso.conteudo_zip))
+        self.end_headers()
+
+    def do_POST(self):
+        corpo = self.rfile.read(int(self.headers["Content-Length"]))
+        self.responder({"recebido": [json.loads(corpo)]})
 
     def log_message(self, *args):
         pass
@@ -70,6 +85,25 @@ class SiteFalso(BaseHTTPRequestHandler):
             ok = (self.headers.get("Authorization") == "Bearer segredo")
             self.responder([{"ok": True}] if ok else {"erro": "x"},
                            200 if ok else 401)
+        elif url.path == "/wb":
+            self.responder([{"page": 1}, [{"ano": 2025}, {"ano": 2024}]])
+        elif url.path == "/pagina":
+            self.responder((
+                '<a href="/arquivos/Frota Município_Set.xlsx">Frota set</a>'
+                '<a href="arquivos/frota_ago.xlsx/@@download/file">Frota ago'
+                '</a><a href="/arquivos/outro.zip">Outro</a>'
+                '<a href="/sobre">Sobre</a><a href="#topo">Topo</a>'
+                '<a href="mailto:a@b.c">x</a>').encode(), tipo="text/html")
+        elif url.path == "/api/3/action/package_show":
+            base_r = base + "/arquivos/"
+            self.responder({"result": {"resources": [
+                {"name": "Dicionário", "format": "PDF", "url": base_r + "d.pdf"},
+                {"name": "Jan", "format": "CSV", "url": base_r + "jan.csv"},
+                {"name": "Fev", "format": "CSV", "url": base_r + "fev.csv"},
+            ]}} if q.get("id") == "frota" else {"erro": 1})
+        elif url.path.startswith("/arquivos/"):
+            self.responder(SiteFalso.conteudo_zip + url.path.encode()[-6:],
+                           tipo="application/octet-stream")
         elif url.path == "/html":
             self.responder(b"<html>oi</html>", tipo="text/html")
         else:
@@ -123,7 +157,8 @@ class TesteConectores(Base):
     def test_paginacao_por_offset(self):
         linhas, _ = self.baixar({
             "caminho": "/offset",
-            "paginacao": {"tipo": "offset", "tamanho": 2}})
+            "paginacao": {"tipo": "offset", "tamanho": 2,
+                          "param_tamanho": "limit"}})
         self.assertEqual([l["id"] for l in linhas], [1, 2, 3, 4, 5])
         self.assertEqual([p[1]["offset"] for p in SiteFalso.pedidos],
                          ["0", "2", "4"])
@@ -194,6 +229,54 @@ class TesteConectores(Base):
         with self.assertRaisesRegex(con.ErroDownload, "conectar"):
             self.baixar({"caminho": "/lista"})
 
+    def test_post_e_indice_de_lista(self):
+        linhas, _ = self.baixar({"caminho": "/qualquer", "metodo": "POST",
+                                 "corpo": '{"a": 1}', "registros": "recebido"})
+        self.assertEqual(linhas, [{"a": 1}])
+        linhas, _ = self.baixar({"caminho": "/wb", "registros": "1"})
+        self.assertEqual([l["ano"] for l in linhas], [2025, 2024])
+
+    def test_tamanho_so_vai_na_url_com_parametro(self):
+        self.baixar({"caminho": "/infinito", "paginacao": {
+            "tipo": "pagina", "param": "numeropagina", "tamanho": 5000}})
+        self.assertEqual(SiteFalso.pedidos[0][1], {"numeropagina": "1"})
+
+    def test_marcadores_de_data(self):
+        dia = date(2026, 1, 15)
+        self.assertEqual(
+            con.preencher_datas("/{AAAA-MM:-1}/{AAAAMM:-2}/{AAAA}/{MM}/"
+                                "{AAAA:-1}/{AAAA-MM:12}", dia),
+            "/2025-12/202511/2026/01/2025/2027-01")
+        self.assertEqual(con.preencher_datas("/sem/{marcador}", dia),
+                         "/sem/{marcador}")
+
+    def test_links_de_uma_pagina(self):
+        ep = {"tipo": "pagina", "caminho": "/pagina"}
+        nomes = [c["nome"] for c in arq.listar_candidatos(self.fonte, ep)]
+        self.assertEqual(nomes, ["Frota_Munic_pio_Set.xlsx", "frota_ago.xlsx",
+                                 "outro.zip"])
+        ep["filtro"] = "frota set, outro"
+        achados = arq.listar_candidatos(self.fonte, ep)
+        self.assertEqual([c["nome"] for c in achados],
+                         ["Frota_Munic_pio_Set.xlsx", "outro.zip"])
+        self.assertIn("Frota%20Munic%C3%ADpio_Set.xlsx", achados[0]["url"])
+
+    def test_recursos_ckan(self):
+        ep = {"tipo": "ckan", "dataset": "frota", "filtro": "csv",
+              "mais_novos_no_fim": True}
+        achados = arq.candidatos_em_ordem(self.fonte, ep)
+        self.assertEqual([c["nome"] for c in achados], ["fev.csv", "jan.csv"])
+        with self.assertRaisesRegex(con.ErroDownload, "CKAN"):
+            arq.listar_candidatos(self.fonte, dict(ep, dataset="x"))
+
+    def test_nome_de_arquivo(self):
+        self.assertEqual(arq.nome_de_arquivo(
+            "https://x/a/planilha.xlsx/@@download/file"), "planilha.xlsx")
+        self.assertEqual(arq.nome_de_arquivo(
+            "https://x/baixar?id=1", 'attachment; filename="../../m al.zip"'),
+            "m_al.zip")
+        self.assertEqual(arq.nome_de_arquivo("https://x/"), "arquivo")
+
     def test_validacao(self):
         ok = {"base_url": "https://x.com",
               "endpoints": {"a": {"caminho": "/"}}}
@@ -201,13 +284,16 @@ class TesteConectores(Base):
         casos = [
             ("Site X", ok, "identificador"),
             ("../x", ok, "identificador"),
-            ("s", {"base_url": "ftp://x"}, "URL base"),
+            ("s", {"base_url": "gopher://x"}, "URL base"),
             ("s", dict(ok, auth={"tipo": "oauth"}), "autenticação"),
             ("s", dict(ok, endpoints={"A b": {}}), "identificador"),
             ("s", dict(ok, endpoints={"a": {"paginacao": {"tipo": "cursor"}}}),
              "campo_proximo"),
             ("s", dict(ok, endpoints={"a": {"formato_resposta": "xml"}}),
              "formato"),
+            ("s", dict(ok, endpoints={"a": {"tipo": "ftp"}}), "tipo"),
+            ("s", dict(ok, endpoints={"a": {"tipo": "ckan"}}), "dataset"),
+            ("s", dict(ok, endpoints={"a": {"metodo": "PUT"}}), "método"),
         ]
         for nome, fonte, trecho in casos:
             with self.assertRaisesRegex(con.ErroConfig, trecho):
@@ -218,7 +304,9 @@ class TesteConectores(Base):
             fontes = json.load(f)["fontes"]
         for nome, fonte in fontes.items():
             con.validar_fonte(nome, fonte)
-        self.assertLessEqual({"ibge", "anp", "bcb"}, set(fontes))
+        self.assertGreaterEqual(len(fontes), 33)
+        ids = {f["catalogo"]["ID"] for f in fontes.values()}
+        self.assertEqual(ids, {f"DH-{i:03d}" for i in range(1, 34)})
 
 
 class TesteArmazenamento(Base):
@@ -248,6 +336,60 @@ class TesteArmazenamento(Base):
         previa = self.arm.previa("site", "lista")
         self.assertEqual(previa, {"colunas": ["id", "nome"],
                                   "linhas": [["1", "ação"], ["2", "b"]]})
+
+    def test_tabela_guarda_versoes_sem_duplicar(self):
+        pasta = self.arm.pasta_dados / "site" / "_versoes" / "t"
+        self.arm.salvar_linhas("site", "t", [{"a": 1}])
+        self.arm.salvar_linhas("site", "t", [{"a": 1}])
+        self.assertEqual(len(list(pasta.glob("*.csv"))), 1)
+        import time
+        time.sleep(1.1)
+        self.arm.salvar_linhas("site", "t", [{"a": 2}])
+        self.assertEqual(len(list(pasta.glob("*.csv"))), 2)
+        self.assertIn("2", self.arm.caminho_csv("site", "t").read_text())
+
+    def test_arquivos_baixa_so_o_que_e_novo_e_nao_sobrescreve(self):
+        SiteFalso.conteudo_zip = b"PK-versao-1"
+        self.addCleanup(setattr, SiteFalso, "conteudo_zip", b"PK-versao-1")
+        self.fonte["endpoints"] = {
+            "pag": {"tipo": "pagina", "caminho": "/pagina", "max_arquivos": 2},
+            "fixo": {"tipo": "arquivo", "caminho": "/arquivos/com_etag.zip"},
+            "manual": {"tipo": "arquivo", "caminho": "/arquivos/g.zip",
+                       "manual": True}}
+        self.arm.salvar_fonte("site", self.fonte)
+        res = {r["endpoint"]: r for r in self.arm.baixar_tudo()}
+        self.assertEqual(set(res), {"pag", "fixo"})       # 'manual' fica fora
+        self.assertIn("2 arquivo(s) novo(s)", res["pag"]["mensagem"])
+        self.assertIn("Ainda há 1", res["pag"]["mensagem"])
+        self.assertEqual(res["fixo"]["linhas"], "")
+        # 2ª rodada: página baixa o que faltou; o fixo não mudou (ETag).
+        SiteFalso.pedidos.clear()
+        res = {r["endpoint"]: r for r in self.arm.baixar_tudo()}
+        self.assertIn("1 arquivo(s) novo(s), 2 sem alteração",
+                      res["pag"]["mensagem"])
+        self.assertIn("0 arquivo(s) novo(s), 1 sem", res["fixo"]["mensagem"])
+        self.assertNotIn("/arquivos/com_etag.zip",
+                         [p[0] for p in SiteFalso.pedidos])
+        # O arquivo mudou no site: a versão nova ganha a data no nome.
+        SiteFalso.conteudo_zip = b"PK-versao-2-maior"
+        self.assertIn("1 arquivo(s) novo(s)",
+                      self.arm.baixar("site", "fixo")["mensagem"])
+        pasta = self.arm.pasta_arquivos("site", "fixo")
+        nomes = sorted(p.name for p in pasta.iterdir())
+        self.assertEqual(len(nomes), 3)
+        self.assertEqual(nomes[:2], ["_arquivos.csv", "com_etag.zip"])
+        self.assertRegex(nomes[2], r"^com_etag__\d{8}-\d{6}\.zip$")
+        self.assertTrue((pasta / "com_etag.zip").read_bytes()
+                        .startswith(b"PK-versao-1"))
+        manifesto = self.arm.manifesto("site", "fixo")
+        self.assertEqual(len(manifesto), 2)
+        self.assertEqual(len(manifesto[0]["sha256"]), 64)
+        itens = [a for a in self.arm.arquivos() if a["endpoint"] == "fixo"]
+        self.assertEqual(len(itens), 2)
+        self.assertEqual(self.arm.baixar("site", "manual")["status"], "ok")
+        for ruim in ("../x", "_arquivos.csv", "a/b", ""):
+            with self.assertRaises(con.ErroConfig):
+                self.arm.caminho_arquivo("site", "fixo", ruim)
 
     def test_segredos_ficam_separados_e_sao_mantidos(self):
         self.fonte["auth"] = {"tipo": "bearer"}
@@ -329,6 +471,24 @@ class TesteServidor(Base):
         status, corpo, cab = self.pedir("/arquivo?fonte=site&endpoint=lista")
         self.assertEqual(status, 200)
         self.assertIn("site_lista.csv", cab["Content-Disposition"])
+
+        fonte["endpoints"]["pag"] = {"tipo": "pagina", "caminho": "/pagina",
+                                     "filtro": "outro"}
+        self.pedir("/api/fontes", {"nome": "site", "fonte": fonte})
+        teste = {"nome": "site", "fonte": fonte,
+                 "endpoint": fonte["endpoints"]["pag"]}
+        achados = json.loads(self.pedir("/api/testar", teste)[1])
+        self.assertEqual((achados["total"], achados["arquivos"][0]["nome"]),
+                         (1, "outro.zip"))
+        res = json.loads(self.pedir("/api/baixar", {
+            "fonte": "site", "endpoint": "pag"})[1])
+        self.assertEqual(res["status"], "ok")
+        status, corpo, cab = self.pedir(
+            "/arquivo?fonte=site&endpoint=pag&nome=outro.zip")
+        self.assertEqual(status, 200)
+        self.assertTrue(corpo.startswith(b"PK-versao-1"))
+        self.assertEqual(self.pedir(
+            "/arquivo?fonte=site&endpoint=pag&nome=..%2Fx")[0], 400)
 
         self.pedir("/api/fontes/excluir", {"nome": "site"})
         self.assertEqual(json.loads(self.pedir("/api/estado")[1])["fontes"], {})

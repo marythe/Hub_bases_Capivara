@@ -10,14 +10,18 @@ import csv
 import io
 import json
 import re
+import ssl
 import time
 import urllib.error
 import urllib.request
+from datetime import date
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 NOME_VALIDO = re.compile(r"^[a-z0-9_]+$")
 TIPOS_AUTH = ("nenhuma", "bearer", "api_key", "basic")
 TIPOS_PAGINACAO = ("nenhuma", "pagina", "offset", "cursor")
+TIPOS_CONJUNTO = ("tabela", "arquivo", "pagina", "ckan")
+TIPOS_ARQUIVO = ("arquivo", "pagina", "ckan")
 CAMPOS_SEGREDO = {
     "nenhuma": (),
     "bearer": ("token",),
@@ -49,6 +53,21 @@ def validar_endpoint(nome, ep, onde=""):
     onde = f"{onde}conjunto '{nome}': "
     if not isinstance(ep, dict):
         raise ErroConfig(onde + "configuração inválida.")
+    tipo_conjunto = ep.get("tipo", "tabela")
+    if tipo_conjunto not in TIPOS_CONJUNTO:
+        raise ErroConfig(onde + f"tipo desconhecido: '{tipo_conjunto}'.")
+    if tipo_conjunto == "ckan" and not ep.get("dataset"):
+        raise ErroConfig(onde + "informe o identificador do conjunto no "
+                         "portal CKAN (campo 'dataset').")
+    if ep.get("metodo", "GET") not in ("GET", "POST"):
+        raise ErroConfig(onde + "o método deve ser GET ou POST.")
+    for campo in ("corpo", "filtro", "dataset"):
+        if not isinstance(ep.get(campo) or "", str):
+            raise ErroConfig(onde + f"'{campo}' deve ser um texto.")
+    maximo = ep.get("max_arquivos")
+    if maximo is not None and (not isinstance(maximo, int)
+                               or isinstance(maximo, bool) or maximo < 1):
+        raise ErroConfig(onde + "'max_arquivos' deve ser um número inteiro.")
     if not isinstance(ep.get("caminho", ""), str):
         raise ErroConfig(onde + "'caminho' deve ser um texto.")
     if not isinstance(ep.get("params") or {}, dict):
@@ -75,9 +94,10 @@ def validar_fonte(nome, fonte):
     if not isinstance(fonte, dict):
         raise ErroConfig(onde + "configuração inválida.")
     base = fonte.get("base_url")
-    if not isinstance(base, str) or not re.match(r"^https?://[^/\s]+", base):
+    if not isinstance(base, str) or not re.match(r"^(https?|ftp)://[^/\s]+",
+                                                 base):
         raise ErroConfig(onde + "informe o endereço (URL base) começando com "
-                         "http:// ou https://.")
+                         "http://, https:// ou ftp://.")
     tipo = (fonte.get("auth") or {}).get("tipo", "nenhuma")
     if tipo not in TIPOS_AUTH:
         raise ErroConfig(onde + f"tipo de autenticação desconhecido: '{tipo}'.")
@@ -102,11 +122,35 @@ def com_params(url, extras):
     return urlunsplit(partes._replace(query=query))
 
 
+_MARCADOR_DATA = re.compile(r"\{(AAAA-MM|AAAAMM|AAAA|MM)(?::(-?\d+))?\}")
+
+
+def preencher_datas(texto, hoje=None):
+    """Troca marcadores pela data do dia do download, para endereços que
+    mudam todo mês: {AAAA}, {MM}, {AAAA-MM}, {AAAAMM}. Um número depois de
+    ':' desloca em meses (ou anos, no caso de {AAAA}): {AAAA-MM:-1} é o mês
+    passado."""
+    hoje = hoje or date.today()
+
+    def trocar(m):
+        formato, desloc = m.group(1), int(m.group(2) or 0)
+        if formato == "AAAA":
+            return str(hoje.year + desloc)
+        meses = hoje.year * 12 + hoje.month - 1 + desloc
+        ano, mes = divmod(meses, 12)
+        return {"AAAA-MM": f"{ano}-{mes + 1:02d}", "AAAAMM": f"{ano}{mes + 1:02d}",
+                "MM": f"{mes + 1:02d}"}[formato]
+
+    return _MARCADOR_DATA.sub(trocar, texto)
+
+
 def montar_url(fonte, endpoint):
     base = fonte["base_url"].rstrip("/")
-    caminho = (endpoint.get("caminho") or "").lstrip("/")
+    caminho = preencher_datas((endpoint.get("caminho") or "").lstrip("/"))
     url = f"{base}/{caminho}" if caminho else base
-    return com_params(url, endpoint.get("params") or {})
+    params = {k: preencher_datas(str(v))
+              for k, v in (endpoint.get("params") or {}).items()}
+    return com_params(url, params)
 
 
 def _segredo(segredos, campo, nome_fonte):
@@ -141,13 +185,40 @@ def aplicar_auth(url, cabecalhos, fonte, segredos, nome_fonte=""):
     return url, cabecalhos
 
 
-def requisitar(url, cabecalhos, timeout=60, tentativas=3, espera=1.0):
-    """GET com novas tentativas em falhas temporárias. Devolve os bytes."""
+def abrir(req, timeout=60, verificar_ssl=True):
+    """urlopen com a opção de aceitar certificados que o Python não
+    reconhece (comum em alguns sites do governo)."""
+    contexto = None
+    if not verificar_ssl:
+        contexto = ssl.create_default_context()
+        contexto.check_hostname = False
+        contexto.verify_mode = ssl.CERT_NONE
+    return urllib.request.urlopen(req, timeout=timeout, context=contexto)
+
+
+def explicar_erro(e):
+    motivo = getattr(e, "reason", e)
+    if isinstance(motivo, ssl.SSLCertVerificationError):
+        return ("o certificado de segurança do site não foi reconhecido. "
+                "Se o endereço estiver correto, marque a opção 'Aceitar "
+                "certificado não reconhecido' no cadastro do site")
+    return str(motivo)
+
+
+def requisitar(url, cabecalhos, timeout=60, tentativas=3, espera=1.0,
+               metodo="GET", corpo=None, verificar_ssl=True):
+    """Requisição com novas tentativas em falhas temporárias. Devolve os
+    bytes da resposta."""
     ultimo_erro = None
+    dados = None
+    if metodo == "POST":
+        dados = (corpo or "").encode("utf-8")
+        cabecalhos = dict({"Content-Type": "application/json"}, **cabecalhos)
     for tentativa in range(1, max(1, tentativas) + 1):
-        req = urllib.request.Request(url, headers=cabecalhos, method="GET")
+        req = urllib.request.Request(url, data=dados, headers=cabecalhos,
+                                     method=metodo)
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
+            with abrir(req, timeout, verificar_ssl) as resp:
                 return resp.read()
         except urllib.error.HTTPError as e:
             ultimo_erro = ErroDownload(
@@ -155,9 +226,8 @@ def requisitar(url, cabecalhos, timeout=60, tentativas=3, espera=1.0):
             if e.code not in (429, 500, 502, 503, 504):
                 break
         except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
-            motivo = getattr(e, "reason", e)
             ultimo_erro = ErroDownload(
-                f"Não foi possível conectar ao site: {motivo}.")
+                f"Não foi possível conectar ao site: {explicar_erro(e)}.")
         if tentativa < tentativas:
             time.sleep(espera * tentativa)
     raise ultimo_erro
@@ -170,9 +240,12 @@ def pegar_caminho(dado, caminho):
     if not caminho:
         return dado
     for parte in caminho.split("."):
-        if not isinstance(dado, dict):
+        if isinstance(dado, list) and parte.isdigit():
+            dado = dado[int(parte)] if int(parte) < len(dado) else None
+        elif isinstance(dado, dict):
+            dado = dado.get(parte)
+        else:
             return None
-        dado = dado.get(parte)
     return dado
 
 
@@ -272,19 +345,22 @@ def baixar_endpoint(fonte, endpoint, segredos=None, nome_fonte="",
         extras = {}
         if tipo == "pagina":
             extras[pag.get("param") or "page"] = pagina
-            if tamanho:
-                extras[pag.get("param_tamanho") or "per_page"] = tamanho
+            if tamanho and pag.get("param_tamanho"):
+                extras[pag["param_tamanho"]] = tamanho
         elif tipo == "offset":
             extras[pag.get("param") or "offset"] = deslocamento
-            if tamanho:
-                extras[pag.get("param_tamanho") or "limit"] = tamanho
+            if tamanho and pag.get("param_tamanho"):
+                extras[pag["param_tamanho"]] = tamanho
         elif tipo == "cursor" and cursor is not None:
             extras[pag.get("param") or "cursor"] = cursor
         url = com_params(url, extras)
         url, cab = aplicar_auth(url, cabecalhos, fonte, segredos, nome_fonte)
 
         corpo, novas = ler_resposta(
-            requisitar(url, cab, timeout=timeout, tentativas=tentativas),
+            requisitar(url, cab, timeout=timeout, tentativas=tentativas,
+                       metodo=endpoint.get("metodo", "GET"),
+                       corpo=endpoint.get("corpo"),
+                       verificar_ssl=fonte.get("verificar_ssl", True)),
             endpoint)
         linhas.extend(novas)
 

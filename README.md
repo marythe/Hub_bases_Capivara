@@ -31,7 +31,8 @@ site falhar, os outros continuam.
                               |
                               +-- config/fontes.json     sites cadastrados
                               +-- config/segredos.json   tokens e senhas (fora do Git)
-                              +-- dados/<site>/<conjunto>.csv
+                              +-- dados/<site>/<conjunto>.csv      tabelas
+                              +-- dados/<site>/<conjunto>/         arquivos como estão
                               +-- dados/_historico.csv
 ```
 
@@ -41,9 +42,9 @@ site falhar, os outros continuam.
 - Cada **site** tem um endereço e, se precisar, um login (token, chave de
   API ou usuário e senha).
 - Cada **conjunto de dados** é uma consulta ao site (caminho + parâmetros)
-  e gera um arquivo `.csv`. Um novo download substitui o arquivo anterior.
-- Sites sem API que publicam arquivos CSV (caso da ANP) funcionam
-  escolhendo o formato "Arquivo CSV".
+  e gera um arquivo `.csv`.
+- Sites sem API funcionam pelos tipos "Arquivo" e "Página com vários
+  arquivos": a plataforma acha os links e baixa só o que é novo ou mudou.
 - APIs que entregam os dados em partes são tratadas pela opção de paginação
   (por página, por posição ou por cursor).
 - O programa só aceita acesso do próprio computador.
@@ -63,11 +64,16 @@ python baixar.py ibge_sidra      # só um site
 python baixar.py bcb selic       # só um conjunto
 ```
 
-## Sites de exemplo já cadastrados
+## Fontes já cadastradas
 
-`bcb` (Selic e IPCA), `ibge` (estados), `ibge_sidra` (IPCA dos últimos 12
-meses) e `anp` (preços de combustíveis, arquivo CSV). Podem ser editados ou
-excluídos pela tela.
+As 33 fontes do Catálogo Mestre (IBGE, Receita/CNPJ, SENATRAN, ANTT, DNIT,
+ANP, Comex Stat, Banco Central, Siconfi, Compras.gov e outras) já estão em
+`config/fontes.json`. A situação de teste de cada uma está na seção 9 do
+manual. Novas fontes são cadastradas pela tela, em "+ Novo site".
+
+Cada conjunto de dados tem um tipo: tabela (API/CSV), arquivo, página com
+vários arquivos ou portal CKAN. Nada é sobrescrito: versões anteriores
+ficam guardadas.
 
 ## Manual
 

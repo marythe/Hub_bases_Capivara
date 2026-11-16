@@ -4,10 +4,12 @@ Só aceita conexões do próprio computador (127.0.0.1).
 """
 
 import json
+import shutil
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+from . import arquivos as arq
 from . import conectores as con
 from .armazenamento import Armazenamento
 
@@ -117,12 +119,26 @@ def criar_servidor(raiz=".", porta=8000, qualquer_host=False):
                                   consulta.get("endpoint")))
 
         def arquivo(self, consulta):
-            caminho = arm.caminho_csv(consulta.get("fonte"),
-                                      consulta.get("endpoint"))
-            nome = f"{caminho.parent.name}_{caminho.name}"
-            self._enviar(200, caminho.read_bytes(), "text/csv; charset=utf-8",
-                         {"Content-Disposition":
-                          f'attachment; filename="{nome}"'})
+            if consulta.get("nome"):
+                caminho = arm.caminho_arquivo(consulta.get("fonte"),
+                                              consulta.get("endpoint"),
+                                              consulta["nome"])
+                nome, tipo = caminho.name, "application/octet-stream"
+            else:
+                caminho = arm.caminho_csv(consulta.get("fonte"),
+                                          consulta.get("endpoint"))
+                nome = f"{caminho.parent.name}_{caminho.name}"
+                tipo = "text/csv; charset=utf-8"
+            with open(caminho, "rb") as f:   # sem carregar tudo na memória
+                self.send_response(200)
+                self.send_header("Content-Type", tipo)
+                self.send_header("Content-Length",
+                                 str(caminho.stat().st_size))
+                self.send_header("Content-Disposition",
+                                 f'attachment; filename="{nome}"')
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.end_headers()
+                shutil.copyfileobj(f, self.wfile)
 
         def salvar_fonte(self, consulta):
             dado = self._corpo_json()
@@ -147,6 +163,13 @@ def criar_servidor(raiz=".", porta=8000, qualquer_host=False):
             segredos = dict(arm.segredos(nome))
             segredos.update({k: v for k, v in
                              (dado.get("segredos") or {}).items() if v})
+            if endpoint.get("tipo", "tabela") in con.TIPOS_ARQUIVO:
+                achados = arq.candidatos_em_ordem(fonte_teste, endpoint,
+                                                  segredos, nome)
+                return self._json({
+                    "total": len(achados),
+                    "arquivos": [{"nome": a["nome"], "texto": a["texto"],
+                                  "url": a["url"]} for a in achados[:200]]})
             linhas, _ = con.baixar_endpoint(fonte_teste, endpoint, segredos,
                                             nome, max_paginas=1)
             colunas = con.colunas_de(linhas)

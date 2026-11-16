@@ -54,6 +54,7 @@
   @media (max-width: 820px) { .sites { grid-template-columns: 1fr; } }
   .lista { display: flex; flex-direction: column; gap: 8px; }
   .item-site { text-align: left; width: 100%; padding: 10px 12px; }
+  [hidden] { display: none !important; }
   .item-site[aria-current="true"] { border-color: var(--destaque);
             background: var(--destaque-fraco); }
   .item-site strong { display: block; }
@@ -187,9 +188,11 @@ function tamanhoLegivel(bytes) {
 // ----------------------------------------------- rascunho <-> config ----
 
 function novoConjunto() {
-  return { nome: "", caminho: "", paramsTexto: "", formato_resposta: "json",
+  return { nome: "", tipo: "tabela", caminho: "", paramsTexto: "", formato_resposta: "json",
            registros: "", primeira_linha_cabecalho: false, separador: ";",
-           codificacao: "", pag: { tipo: "nenhuma" }, resultado: null };
+           codificacao: "", metodo: "GET", corpo: "", filtro: "", dataset: "",
+           max_arquivos: "", mais_novos_no_fim: false, manual: false,
+           pag: { tipo: "nenhuma" }, resultado: null };
 }
 
 function abrirRascunho(nome) {
@@ -197,36 +200,57 @@ function abrirRascunho(nome) {
   if (!f) {
     estado.rascunho = { novo: true, nome: "", descricao: "", base_url: "",
       auth: { tipo: "nenhuma" }, segredos: {}, timeout_segundos: "",
+      link_oficial: "", observacoes: "", aceitar_certificado: false,
       extras: {}, conjuntos: [novoConjunto()], msg: null };
     return;
   }
-  const { descricao, base_url, auth, timeout_segundos, endpoints, ...extras } = f;
+  const { descricao, base_url, auth, timeout_segundos, endpoints, link_oficial,
+          observacoes, verificar_ssl, ...extras } = f;
   estado.rascunho = {
     novo: false, nome, descricao: descricao || "", base_url: base_url || "",
     auth: Object.assign({ tipo: "nenhuma" }, auth), segredos: {},
-    timeout_segundos: timeout_segundos || "", extras, msg: null,
+    timeout_segundos: timeout_segundos || "", link_oficial: link_oficial || "",
+    observacoes: observacoes || "", aceitar_certificado: verificar_ssl === false,
+    extras, msg: null,
     conjuntos: Object.entries(endpoints || {}).map(([n, ep]) => {
-      const { caminho, params, formato_resposta, registros,
+      const { tipo, caminho, params, formato_resposta, registros,
               primeira_linha_cabecalho, separador, codificacao, paginacao,
-              ...resto } = ep;
-      return { nome: n, caminho: caminho || "", resto,
+              metodo, corpo, filtro, dataset, max_arquivos, mais_novos_no_fim,
+              manual, ...resto } = ep;
+      return { nome: n, tipo: tipo || "tabela", caminho: caminho || "", resto,
         paramsTexto: Object.entries(params || {}).map(([k, v]) => k + "=" + v).join("\n"),
         formato_resposta: formato_resposta || "json", registros: registros || "",
         primeira_linha_cabecalho: !!primeira_linha_cabecalho,
         separador: separador || ";", codificacao: codificacao || "",
+        metodo: metodo || "GET", corpo: corpo || "", filtro: filtro || "",
+        dataset: dataset || "", max_arquivos: max_arquivos || "",
+        mais_novos_no_fim: !!mais_novos_no_fim, manual: !!manual,
         pag: Object.assign({ tipo: "nenhuma" }, paginacao), resultado: null };
     }),
   };
 }
 
 function conjuntoParaConfig(c) {
-  const ep = Object.assign({}, c.resto, { caminho: c.caminho.trim() });
+  const ep = Object.assign({}, c.resto);
+  if (c.tipo !== "tabela") ep.tipo = c.tipo;
+  if (c.manual) ep.manual = true;
+  if (c.tipo !== "ckan") ep.caminho = c.caminho.trim();
   const params = {};
   for (const linha of c.paramsTexto.split("\n")) {
     const i = linha.indexOf("=");
     if (i > 0) params[linha.slice(0, i).trim()] = linha.slice(i + 1).trim();
   }
-  if (Object.keys(params).length) ep.params = params;
+  if (c.tipo !== "ckan" && Object.keys(params).length) ep.params = params;
+  if (c.tipo !== "tabela") {
+    if (c.tipo === "ckan") ep.dataset = c.dataset.trim();
+    if (c.tipo !== "arquivo") {
+      if (c.filtro.trim()) ep.filtro = c.filtro.trim();
+      if (c.max_arquivos) ep.max_arquivos = Number(c.max_arquivos);
+      if (c.mais_novos_no_fim) ep.mais_novos_no_fim = true;
+    }
+    return ep;
+  }
+  if (c.metodo === "POST") { ep.metodo = "POST"; ep.corpo = c.corpo; }
   if (c.formato_resposta === "csv") {
     ep.formato_resposta = "csv";
     ep.separador = c.separador || ",";
@@ -258,6 +282,9 @@ function fonteParaConfig(r) {
     }
   }
   if (r.timeout_segundos) fonte.timeout_segundos = Number(r.timeout_segundos);
+  if (r.link_oficial.trim()) fonte.link_oficial = r.link_oficial.trim();
+  if (r.observacoes.trim()) fonte.observacoes = r.observacoes.trim();
+  if (r.aceitar_certificado) fonte.verificar_ssl = false;
   fonte.endpoints = {};
   for (const c of r.conjuntos) {
     if (!c.nome) throw new Error("Dê um identificador a cada conjunto de dados.");
@@ -301,6 +328,15 @@ async function testar(c) {
     const fonte = fonteParaConfigSemConjuntos(r);
     const dado = await api("/api/testar", { nome: r.nome || "teste", fonte,
       endpoint: conjuntoParaConfig(c), segredos: r.segredos });
+    if (dado.arquivos) {
+      c.resultado = { tipo: dado.total ? "ok" : "erro", arquivos: dado.arquivos,
+        texto: dado.total
+          ? dado.total + " arquivo(s) encontrado(s)" +
+            (dado.total > dado.arquivos.length ? " (mostrando " + dado.arquivos.length + ")" : "") +
+            ". Nada foi baixado ainda."
+          : "Nenhum arquivo encontrado. Confira o endereço e o filtro." };
+      return;
+    }
     c.resultado = { tipo: "ok", previa: dado,
       texto: "Conexão funcionou: " + dado.total + " linha(s) na primeira consulta" +
              (dado.total > dado.linhas.length ? " (mostrando " + dado.linhas.length + ")." : ".") +
@@ -317,8 +353,10 @@ async function baixarUm(c) {
     await salvar();
     const res = await api("/api/baixar", { fonte: estado.rascunho.nome, endpoint: c.nome });
     c.resultado = res.status === "ok"
-      ? { tipo: "ok", texto: res.linhas + " linha(s) gravada(s) em dados/" +
-          res.fonte + "/" + res.endpoint + ".csv. " + (res.mensagem || "") }
+      ? { tipo: "ok", texto: res.linhas === ""
+          ? res.mensagem + " Pasta: dados/" + res.fonte + "/" + res.endpoint + "/"
+          : res.linhas + " linha(s) gravada(s) em dados/" +
+            res.fonte + "/" + res.endpoint + ".csv. " + (res.mensagem || "") }
       : { tipo: "erro", texto: res.mensagem };
   } catch (e) { c.resultado = { tipo: "erro", texto: e.message }; }
 }
@@ -326,15 +364,15 @@ async function baixarUm(c) {
 async function baixarTudo() {
   const itens = [];
   for (const [f, fonte] of Object.entries(estado.fontes))
-    for (const ep of Object.keys(fonte.endpoints || {}))
-      itens.push({ fonte: f, endpoint: ep, status: "na fila", mensagem: "" });
+    for (const [ep, conf] of Object.entries(fonte.endpoints || {}))
+      if (!conf.manual) itens.push({ fonte: f, endpoint: ep, status: "na fila", mensagem: "" });
   estado.progresso = itens; estado.aba = "dados"; desenhar();
   for (const item of itens) {
     item.status = "baixando"; desenhar();
     try {
       const res = await api("/api/baixar", { fonte: item.fonte, endpoint: item.endpoint });
       item.status = res.status;
-      item.mensagem = res.status === "ok"
+      item.mensagem = res.status === "ok" && res.linhas !== ""
         ? res.linhas + " linha(s). " + (res.mensagem || "") : res.mensagem;
     } catch (e) { item.status = "erro"; item.mensagem = e.message; }
     desenhar();
@@ -362,25 +400,56 @@ function escolha(rotulo, objeto, chave, opcoes, dica) {
   return el("label", null, rotulo, sel, dica && el("span", { class: "dica" }, dica));
 }
 
+function areaTexto(rotulo, objeto, chave, exemplo, dica) {
+  return el("label", { class: "larga" }, rotulo,
+    el("textarea", { placeholder: exemplo, oninput: e => { objeto[chave] = e.target.value; } },
+       objeto[chave] || ""),
+    dica && el("span", { class: "dica" }, dica));
+}
+
+function marcar(rotulo, objeto, chave) {
+  return el("label", { class: "linha larga" },
+    el("input", { type: "checkbox", checked: !!objeto[chave],
+      onchange: e => { objeto[chave] = e.target.checked; } }), rotulo);
+}
+
+const TIPOS = [["tabela", "Tabela (API ou CSV) — vira um .csv"],
+               ["arquivo", "Arquivo — baixar como está (ZIP, XLSX...)"],
+               ["pagina", "Página com vários arquivos"],
+               ["ckan", "Portal CKAN (catálogo de dados abertos)"]];
+
 function telaConjunto(c, i) {
   const r = estado.rascunho;
   const pag = c.pag;
+  const varios = c.tipo === "pagina" || c.tipo === "ckan";
   return el("div", { class: "conjunto" },
     el("div", { class: "cabecalho" },
       el("h3", null, c.nome || "Novo conjunto de dados"),
-      el("button", { onclick: e => executar(e.target, () => testar(c)) }, "Testar conexão"),
+      el("button", { onclick: e => executar(e.target, () => testar(c)) },
+         c.tipo === "tabela" ? "Testar conexão" : "Listar arquivos"),
       el("button", { class: "principal", onclick: e => executar(e.target, () => baixarUm(c)) }, "Salvar e baixar"),
       el("button", { class: "perigo", onclick: () => { r.conjuntos.splice(i, 1); desenhar(); } }, "Remover")),
     el("div", { class: "grade" },
       campo("Identificador", c, "nome", { slug: true, exemplo: "ex.: ipca_mensal",
-        dica: "Vira o nome do arquivo .csv" }),
-      campo("Caminho", c, "caminho", { exemplo: "/api/v1/dados",
-        dica: "O que vem depois do endereço do site" }),
-      el("label", { class: "larga" }, "Parâmetros (opcional)",
-        el("textarea", { placeholder: "formato=json\ndataInicial=01/01/2020",
-          oninput: e => { c.paramsTexto = e.target.value; } }, c.paramsTexto),
-        el("span", { class: "dica" }, "Um por linha, no formato chave=valor"))),
-    el("details", { open: c.aberto, ontoggle: e => { c.aberto = e.target.open; } },
+        dica: c.tipo === "tabela" ? "Vira o nome do arquivo .csv" : "Vira o nome da pasta dos arquivos" }),
+      escolha("Tipo", c, "tipo", TIPOS),
+      c.tipo === "ckan"
+        ? campo("Conjunto no portal (dataset)", c, "dataset", { larga: true, exemplo: "ex.: rntrc",
+            dica: "O final do endereço da página do conjunto: .../dataset/rntrc" })
+        : campo(c.tipo === "pagina" ? "Caminho da página" : "Caminho", c, "caminho",
+            { larga: true, exemplo: c.tipo === "arquivo" ? "/pasta/arquivo.zip" : "/api/v1/dados",
+              dica: "O que vem depois do endereço do site" }),
+      c.tipo !== "ckan" && areaTexto("Parâmetros (opcional)", c, "paramsTexto",
+        "formato=json\ndataInicial=01/01/2020", "Um por linha, no formato chave=valor"),
+      varios && campo("Filtro (opcional)", c, "filtro", { larga: true,
+        exemplo: "ex.: municipio 2026, csv",
+        dica: "Termos separados por vírgula; basta um aparecer no nome ou no endereço do arquivo. Palavras no mesmo termo precisam aparecer todas. Vazio = " +
+              (c.tipo === "pagina" ? "todos os links de arquivo da página" : "todos os recursos") }),
+      varios && campo("Máximo de arquivos novos por vez", c, "max_arquivos",
+        { tipo: "number", exemplo: "20" }),
+      varios && marcar("Na lista do site, os arquivos mais novos ficam no fim", c, "mais_novos_no_fim"),
+      marcar("Não incluir no “Baixar tudo” (arquivo muito grande; baixar só por aqui)", c, "manual")),
+    c.tipo === "tabela" && el("details", { open: c.aberto, ontoggle: e => { c.aberto = e.target.open; } },
       el("summary", null, "Formato da resposta e paginação"),
       el("div", { class: "grade" },
         escolha("Formato da resposta", c, "formato_resposta",
@@ -390,10 +459,10 @@ function telaConjunto(c, i) {
         c.formato_resposta === "csv" && campo("Separador do CSV", c, "separador", { exemplo: ";" }),
         escolha("Codificação do texto", c, "codificacao",
           [["", "UTF-8 (padrão)"], ["latin1", "Latin-1 (acentos de sites antigos)"]]),
-        c.formato_resposta === "json" && el("label", { class: "linha larga" },
-          el("input", { type: "checkbox", checked: c.primeira_linha_cabecalho,
-            onchange: e => { c.primeira_linha_cabecalho = e.target.checked; } }),
-          "A primeira linha traz os nomes das colunas (caso da SIDRA/IBGE)"),
+        c.formato_resposta === "json" && marcar(
+          "A primeira linha traz os nomes das colunas (caso da SIDRA/IBGE)", c, "primeira_linha_cabecalho"),
+        escolha("Método", c, "metodo", [["GET", "GET (padrão)"], ["POST", "POST (consulta enviada no corpo)"]]),
+        c.metodo === "POST" && areaTexto("Corpo da consulta (JSON)", c, "corpo", '{"filtro": "valor"}'),
         escolha("Paginação", pag, "tipo",
           [["nenhuma", "Não tem (tudo vem de uma vez)"], ["pagina", "Por número de página"],
            ["offset", "Por posição (offset)"], ["cursor", "Por cursor / próxima página"]],
@@ -401,7 +470,8 @@ function telaConjunto(c, i) {
         pag.tipo !== "nenhuma" && campo("Nome do parâmetro", pag, "param",
           { exemplo: { pagina: "page", offset: "offset", cursor: "cursor" }[pag.tipo] }),
         (pag.tipo === "pagina" || pag.tipo === "offset") && campo("Parâmetro do tamanho", pag, "param_tamanho",
-          { exemplo: pag.tipo === "pagina" ? "per_page" : "limit" }),
+          { exemplo: pag.tipo === "pagina" ? "per_page" : "limit",
+            dica: "Vazio se o site não deixa escolher o tamanho" }),
         (pag.tipo === "pagina" || pag.tipo === "offset") && campo("Linhas por página", pag, "tamanho",
           { tipo: "number", exemplo: "100" }),
         pag.tipo === "cursor" && campo("Campo com a próxima página", pag, "campo_proximo",
@@ -409,6 +479,9 @@ function telaConjunto(c, i) {
         pag.tipo !== "nenhuma" && campo("Máximo de páginas", pag, "max_paginas",
           { tipo: "number", exemplo: "1000" }))),
     c.resultado && el("div", { class: "msg " + c.resultado.tipo, role: "status" }, c.resultado.texto),
+    c.resultado && c.resultado.arquivos && c.resultado.arquivos.length > 0 &&
+      tabela(["Arquivo", "Descrição no site", "Endereço"],
+             c.resultado.arquivos.map(a => [a.nome, a.texto, a.url])),
     c.resultado && c.resultado.previa && c.resultado.previa.linhas.length > 0 &&
       tabela(c.resultado.previa.colunas, c.resultado.previa.linhas));
 }
@@ -437,13 +510,23 @@ function telaEditor() {
         exemplo: definidos.includes(k) ? "(já guardado — deixe vazio para manter)" : "",
         dica: "Fica só neste computador, em config/segredos.json" })),
       campo("Tempo máximo de espera (segundos)", r, "timeout_segundos",
-        { tipo: "number", exemplo: "60" })),
+        { tipo: "number", exemplo: "60" }),
+      campo("Página oficial (para consulta)", r, "link_oficial",
+        { larga: true, exemplo: "https://..." }),
+      areaTexto("Observações", r, "observacoes", "Anotações sobre esta fonte"),
+      marcar("Aceitar certificado não reconhecido (use só se o site der erro de certificado)",
+             r, "aceitar_certificado")),
+    (r.link_oficial || r.extras.catalogo) && el("div", { class: "msg info" },
+      r.extras.catalogo && Object.entries(r.extras.catalogo).map(([k, v]) =>
+        el("div", null, el("strong", null, k + ": "), v)),
+      r.link_oficial && el("div", null, el("a", { href: r.link_oficial, target: "_blank",
+        rel: "noopener noreferrer" }, "Abrir a página oficial"))),
     el("div", { class: "cabecalho", style: "margin-top:18px" },
       el("h2", null, "Conjuntos de dados deste site"),
       el("button", { onclick: () => { const c = novoConjunto(); c.aberto = false; r.conjuntos.push(c); desenhar(); } },
          "+ Adicionar conjunto")),
     el("p", { class: "dica", style: "margin:0" },
-      "Cada conjunto é uma consulta ao site e gera um arquivo .csv."),
+      "Cada conjunto é uma consulta ou um grupo de arquivos do site."),
     r.conjuntos.map(telaConjunto),
     r.msg && el("div", { class: "msg " + r.msg.tipo, role: "status" }, r.msg.texto),
     el("div", { class: "acoes" },
@@ -462,8 +545,15 @@ function telaSites() {
   return el("div", { class: "sites" },
     el("div", { class: "lista" },
       el("button", { class: "principal", onclick: () => { abrirRascunho(null); desenhar(); } }, "+ Novo site"),
+      el("input", { type: "text", id: "busca", placeholder: "Buscar site…", value: estado.busca || "",
+        "aria-label": "Buscar site",
+        oninput: e => { estado.busca = e.target.value;
+          const termo = slug(estado.busca);
+          document.querySelectorAll(".item-site").forEach(b => {
+            b.hidden = termo && !slug(b.textContent).includes(termo); }); } }),
       Object.entries(estado.fontes).map(([nome, f]) =>
-        el("button", { class: "item-site", "aria-current": r && !r.novo && r.nome === nome ? "true" : null,
+        el("button", { class: "item-site",
+            hidden: !!estado.busca && !slug((f.descricao || "") + " " + nome).includes(slug(estado.busca)), "aria-current": r && !r.novo && r.nome === nome ? "true" : null,
             onclick: () => { abrirRascunho(nome); desenhar(); } },
           el("strong", null, f.descricao || nome),
           el("span", null, nome + " · " + Object.keys(f.endpoints || {}).length + " conjunto(s)"))),
@@ -487,15 +577,20 @@ async function telaDados(alvo) {
     el("div", { class: "painel" },
       el("h2", null, "Dados baixados"),
       el("p", { class: "dica", style: "margin-top:0" },
-        "Arquivos na pasta dados/ deste computador. Cada novo download substitui o arquivo anterior."),
+        "Arquivos na pasta dados/ deste computador. Nada é sobrescrito: versões anteriores ficam guardadas."),
       arquivos.length === 0
         ? el("div", { class: "vazio" }, "Nada baixado ainda. Use “Baixar tudo” ou baixe um conjunto na aba Sites.")
         : el("div", { class: "rolagem" }, el("table", null,
             el("thead", null, el("tr", null, ["Site", "Conjunto", "Linhas", "Tamanho", "Atualizado em", ""].map(c => el("th", null, c)))),
             el("tbody", null, arquivos.map(a => el("tr", null,
-              el("td", null, a.fonte), el("td", null, a.endpoint), el("td", null, a.linhas),
+              el("td", null, a.fonte),
+              el("td", { title: a.arquivo }, a.arquivo ? a.endpoint + " / " + a.arquivo : a.endpoint),
+              el("td", null, a.linhas),
               el("td", null, tamanhoLegivel(a.tamanho)), el("td", null, a.modificado),
-              el("td", null,
+              a.arquivo
+                ? el("td", null, el("a", { href: "/arquivo?fonte=" + a.fonte + "&endpoint=" + a.endpoint +
+                    "&nome=" + encodeURIComponent(a.arquivo) }, "baixar"))
+                : el("td", null,
                 el("button", { class: "link", onclick: async () => {
                   estado.previa = Object.assign({ titulo: a.fonte + " / " + a.endpoint },
                     await api("/api/previa?fonte=" + a.fonte + "&endpoint=" + a.endpoint));
@@ -527,10 +622,10 @@ function telaAjuda() {
     el("p", null, "Ela é um programa que roda no seu computador. Você cadastra cada site uma vez; depois, um clique busca os dados de todos e grava em arquivos."),
     el("ol", { class: "passos" },
       passo("Cadastre o site", "Na aba Sites, clique em “+ Novo site” e informe o endereço e, se o site exigir, o login."),
-      passo("Diga o que baixar", "Em cada site, adicione um ou mais conjuntos de dados: o caminho da consulta e os parâmetros."),
-      passo("Teste", "“Testar conexão” faz uma consulta e mostra as primeiras linhas, sem gravar nada."),
-      passo("Baixe", "“Baixar tudo” (no topo) busca todos os conjuntos de todos os sites. Se um falhar, os outros continuam."),
-      passo("Use os dados", "Os arquivos ficam em dados/<site>/<conjunto>.csv e abrem direto no Excel, Python ou Power BI.")),
+      passo("Diga o que baixar", "Em cada site, adicione conjuntos de dados. Há quatro tipos: tabela (API ou CSV), arquivo, página com vários arquivos e portal CKAN."),
+      passo("Teste", "“Testar conexão” mostra as primeiras linhas e “Listar arquivos” mostra os arquivos encontrados, sem gravar nada."),
+      passo("Baixe", "“Baixar tudo” (no topo) busca todos os conjuntos de todos os sites, menos os marcados como muito grandes. Se um falhar, os outros continuam."),
+      passo("Use os dados", "Tabelas ficam em dados/<site>/<conjunto>.csv; arquivos baixados como estão ficam em dados/<site>/<conjunto>/.")),
     el("h3", null, "Onde ficam as coisas"),
     el("ul", null,
       el("li", null, el("code", null, "config/fontes.json"), " — os sites cadastrados (esta tela edita esse arquivo)."),
@@ -538,7 +633,10 @@ function telaAjuda() {
       el("li", null, el("code", null, "dados/"), " — os dados baixados e o histórico.")),
     el("h3", null, "Bom saber"),
     el("ul", null,
-      el("li", null, "Sites que não têm API mas publicam arquivos CSV (como a ANP) também funcionam: escolha o formato “Arquivo CSV”."),
+      el("li", null, "Sites sem API funcionam pelos tipos “Arquivo” e “Página com vários arquivos”: a plataforma acha os links e baixa só o que é novo ou mudou."),
+      el("li", null, "Nada é sobrescrito. Quando uma tabela muda, a versão anterior fica em dados/<site>/_versoes/; quando um arquivo muda, o novo é gravado com a data no nome."),
+      el("li", null, "Cada pasta de arquivos tem um _arquivos.csv com a origem, a data e o hash de cada arquivo baixado."),
+      el("li", null, "Endereços que mudam todo mês aceitam marcadores de data no caminho: {AAAA}, {MM}, {AAAA-MM} e {AAAAMM}. Com “:-1” vale o mês passado, ex.: /dados/{AAAA-MM:-1}/arquivo.zip."),
       el("li", null, "Para baixar sem abrir a tela (por exemplo, agendado todo dia), use ", el("code", null, "python baixar.py"), "."),
       el("li", null, "Os arquivos .csv usam ponto e vírgula como separador. No Python: ",
          el("code", null, "pd.read_csv(arquivo, sep=\";\")"), ".")));

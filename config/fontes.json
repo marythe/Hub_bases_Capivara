@@ -1,48 +1,1326 @@
 {
   "fontes": {
-    "bcb": {
-      "descricao": "Banco Central do Brasil - séries temporais (SGS)",
-      "base_url": "https://api.bcb.gov.br",
+    "ibge": {
+      "descricao": "IBGE - localidades e CNAE",
+      "base_url": "https://servicodados.ibge.gov.br",
+      "link_oficial": "https://servicodados.ibge.gov.br/api/docs/",
+      "observacoes": "API indicada para automação do MVP.",
+      "catalogo": {
+        "ID": "DH-001",
+        "Sinal de mercado": "Território / Demografia",
+        "Prioridade": "ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Varia por dataset",
+        "O que baixar": "Municípios, códigos IBGE, população, agregados estatísticos e classificações",
+        "Cruza com": "Receita, SENATRAN, RAIS/Caged, Siconfi, INEP, CNES, SINISA"
+      },
       "endpoints": {
-        "selic": {
-          "caminho": "/dados/serie/bcdata.sgs.432/dados",
-          "params": {"formato": "json", "dataInicial": "01/01/2020"}
+        "municipios": {
+          "caminho": "/api/v1/localidades/municipios",
+          "params": {
+            "view": "nivelado"
+          }
         },
-        "ipca": {
-          "caminho": "/dados/serie/bcdata.sgs.433/dados",
-          "params": {"formato": "json", "dataInicial": "01/01/2020"}
+        "estados": {
+          "caminho": "/api/v1/localidades/estados"
+        },
+        "cnae_subclasses": {
+          "caminho": "/api/v2/cnae/subclasses"
         }
       }
     },
-    "ibge": {
-      "descricao": "IBGE - localidades",
-      "base_url": "https://servicodados.ibge.gov.br",
-      "endpoints": {
-        "estados": {"caminho": "/api/v1/localidades/estados"}
-      }
-    },
     "ibge_sidra": {
-      "descricao": "IBGE - SIDRA (tabelas de pesquisas)",
+      "descricao": "IBGE - SIDRA (população, PIB, IPCA)",
       "base_url": "https://apisidra.ibge.gov.br",
+      "timeout_segundos": 180,
+      "link_oficial": "https://servicodados.ibge.gov.br/api/docs/",
+      "observacoes": "API indicada para automação do MVP.",
+      "catalogo": {
+        "ID": "DH-001",
+        "Sinal de mercado": "Território / Demografia",
+        "Prioridade": "ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Varia por dataset",
+        "O que baixar": "Municípios, códigos IBGE, população, agregados estatísticos e classificações",
+        "Cruza com": "Receita, SENATRAN, RAIS/Caged, Siconfi, INEP, CNES, SINISA"
+      },
       "endpoints": {
+        "populacao_municipios": {
+          "caminho": "/values/t/6579/n6/all/v/9324/p/last%201",
+          "primeira_linha_cabecalho": true
+        },
+        "pib_municipios": {
+          "caminho": "/values/t/5938/n6/all/v/37/p/last%201",
+          "primeira_linha_cabecalho": true
+        },
         "ipca_12_meses": {
           "caminho": "/values/t/1737/n1/all/v/63/p/last%2012",
           "primeira_linha_cabecalho": true
         }
       }
     },
-    "anp": {
-      "descricao": "ANP - dados abertos (arquivos CSV, não tem API)",
-      "base_url": "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos",
-      "timeout_segundos": 600,
+    "receita_cnpj": {
+      "descricao": "Receita Federal - Dados Abertos do CNPJ",
+      "base_url": "https://arquivos.receitafederal.gov.br",
+      "timeout_segundos": 900,
+      "link_oficial": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/dados-abertos/cadastros",
+      "observacoes": "Usar download em massa; não foi validada API pública oficial do CNPJ. | Os arquivos ficam numa pasta por mês; o caminho usa automaticamente o mês passado ({AAAA-MM:-1}). Empresas, Estabelecimentos e Sócios são 10 arquivos grandes cada e ficam fora do 'Baixar tudo'.",
+      "catalogo": {
+        "ID": "DH-002",
+        "Sinal de mercado": "Empresas / Atividade econômica",
+        "Prioridade": "ALTA",
+        "API?": "NÃO",
+        "Periodicidade": "Mensal / conforme publicação",
+        "O que baixar": "Empresas, estabelecimentos, CNAEs, municípios, natureza jurídica, porte, Simples",
+        "Cruza com": "IBGE, RAIS/Caged, ANP, Compras.gov, dados internos do cliente"
+      },
       "endpoints": {
-        "precos_combustiveis_2024_s1": {
-          "caminho": "/shpc/dsas/ca/ca-2024-01.csv",
-          "formato_resposta": "csv",
-          "separador": ";",
-          "codificacao": "latin1"
+        "cnaes": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Cnaes.zip"
+        },
+        "municipios": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Municipios.zip"
+        },
+        "naturezas": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Naturezas.zip"
+        },
+        "qualificacoes": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Qualificacoes.zip"
+        },
+        "motivos": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Motivos.zip"
+        },
+        "paises": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Paises.zip"
+        },
+        "simples": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Simples.zip",
+          "manual": true
+        },
+        "empresas0": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas0.zip",
+          "manual": true
+        },
+        "empresas1": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas1.zip",
+          "manual": true
+        },
+        "empresas2": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas2.zip",
+          "manual": true
+        },
+        "empresas3": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas3.zip",
+          "manual": true
+        },
+        "empresas4": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas4.zip",
+          "manual": true
+        },
+        "empresas5": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas5.zip",
+          "manual": true
+        },
+        "empresas6": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas6.zip",
+          "manual": true
+        },
+        "empresas7": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas7.zip",
+          "manual": true
+        },
+        "empresas8": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas8.zip",
+          "manual": true
+        },
+        "empresas9": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Empresas9.zip",
+          "manual": true
+        },
+        "estabelecimentos0": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos0.zip",
+          "manual": true
+        },
+        "estabelecimentos1": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos1.zip",
+          "manual": true
+        },
+        "estabelecimentos2": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos2.zip",
+          "manual": true
+        },
+        "estabelecimentos3": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos3.zip",
+          "manual": true
+        },
+        "estabelecimentos4": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos4.zip",
+          "manual": true
+        },
+        "estabelecimentos5": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos5.zip",
+          "manual": true
+        },
+        "estabelecimentos6": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos6.zip",
+          "manual": true
+        },
+        "estabelecimentos7": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos7.zip",
+          "manual": true
+        },
+        "estabelecimentos8": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos8.zip",
+          "manual": true
+        },
+        "estabelecimentos9": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Estabelecimentos9.zip",
+          "manual": true
+        },
+        "socios0": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios0.zip",
+          "manual": true
+        },
+        "socios1": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios1.zip",
+          "manual": true
+        },
+        "socios2": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios2.zip",
+          "manual": true
+        },
+        "socios3": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios3.zip",
+          "manual": true
+        },
+        "socios4": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios4.zip",
+          "manual": true
+        },
+        "socios5": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios5.zip",
+          "manual": true
+        },
+        "socios6": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios6.zip",
+          "manual": true
+        },
+        "socios7": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios7.zip",
+          "manual": true
+        },
+        "socios8": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios8.zip",
+          "manual": true
+        },
+        "socios9": {
+          "tipo": "arquivo",
+          "caminho": "/public.php/dav/files/YggdBLfdninEJX9/{AAAA-MM:-1}/Socios9.zip",
+          "manual": true
         }
       }
+    },
+    "senatran": {
+      "descricao": "SENATRAN - Frota de veículos 2026",
+      "base_url": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-Senatran",
+      "timeout_segundos": 300,
+      "link_oficial": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-Senatran/frota-de-veiculos-2026",
+      "observacoes": "Baixar primeiro município/tipo, ano-modelo e tipo/espécie/eixos.",
+      "catalogo": {
+        "ID": "DH-003",
+        "Sinal de mercado": "Frota / Mercado automotivo",
+        "Prioridade": "ALTA",
+        "API?": "NÃO",
+        "Periodicidade": "Mensal",
+        "O que baixar": "Frota por município e tipo; ano/modelo; combustível; espécie/eixos",
+        "Cruza com": "ANTT, DNIT, ANP, IBGE, Receita"
+      },
+      "endpoints": {
+        "frota_municipio_tipo": {
+          "tipo": "pagina",
+          "caminho": "/frota-de-veiculos-2026",
+          "filtro": "Frota_por_municipio_e_tipo",
+          "max_arquivos": 12
+        },
+        "frota_ano_fabricacao_modelo": {
+          "tipo": "pagina",
+          "caminho": "/frota-de-veiculos-2026",
+          "filtro": "ANO_FAB_MOD",
+          "max_arquivos": 12
+        },
+        "frota_combustivel": {
+          "tipo": "pagina",
+          "caminho": "/frota-de-veiculos-2026",
+          "filtro": "COMBUSTIVEL",
+          "max_arquivos": 12
+        },
+        "frota_especie_eixos": {
+          "tipo": "pagina",
+          "caminho": "/frota-de-veiculos-2026",
+          "filtro": "ESPECIE, EIXO",
+          "max_arquivos": 12
+        }
+      }
+    },
+    "antt": {
+      "descricao": "ANTT - RNTRC - Transportadores e veículos",
+      "base_url": "https://dados.antt.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://dados.antt.gov.br/dataset/rntrc",
+      "observacoes": "Usar arquivos como caminho principal; API CKAN serve sobretudo ao catálogo.",
+      "catalogo": {
+        "ID": "DH-004",
+        "Sinal de mercado": "Transportadores / Frota profissional",
+        "Prioridade": "ALTA",
+        "API?": "CATÁLOGO",
+        "Periodicidade": "Mensal",
+        "O que baixar": "Transportadores, RNTRC, categoria, município, UF, CPF/CNPJ; veículos vinculados",
+        "Cruza com": "SENATRAN, Receita, DNIT, dados do cliente"
+      },
+      "endpoints": {
+        "catalogo": {
+          "caminho": "/api/3/action/package_search",
+          "params": {
+            "rows": "1000"
+          },
+          "registros": "result.results"
+        },
+        "rntrc": {
+          "tipo": "ckan",
+          "dataset": "rntrc",
+          "filtro": "csv",
+          "max_arquivos": 2,
+          "mais_novos_no_fim": true
+        },
+        "rntrc_veiculos": {
+          "tipo": "ckan",
+          "dataset": "rntrc-veiculos",
+          "filtro": "csv"
+        }
+      }
+    },
+    "dnit": {
+      "descricao": "DNIT - Conjuntos de dados: tráfego, pavimento, pesagem, obras",
+      "base_url": "https://servicos.dnit.gov.br/dadosabertos",
+      "timeout_segundos": 300,
+      "link_oficial": "https://www.gov.br/dnit/pt-br/acesso-a-informacao/dados-abertos/conjuntos-de-dados",
+      "observacoes": "API específica dos datasets não foi confirmada nesta rodada. | Endereços cadastrados a partir do portal oficial, mas não testados: o site recusou a conexão a partir do ambiente de testes.",
+      "catalogo": {
+        "ID": "DH-005",
+        "Sinal de mercado": "Tráfego / Rodovias",
+        "Prioridade": "ALTA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Varia por conjunto",
+        "O que baixar": "Contagem de tráfego, condições do pavimento, pesagem, controle de velocidade, obras",
+        "Cruza com": "SENATRAN, ANTT, ANP, IBGE"
+      },
+      "endpoints": {
+        "contagem_de_trafego": {
+          "tipo": "ckan",
+          "dataset": "contagem-de-trafego",
+          "max_arquivos": 10
+        },
+        "condicoes_do_pavimento": {
+          "tipo": "ckan",
+          "dataset": "condicoes-do-pavimento",
+          "max_arquivos": 10
+        },
+        "pesagem": {
+          "tipo": "ckan",
+          "dataset": "pesagem",
+          "max_arquivos": 10
+        },
+        "controle_de_velocidade": {
+          "tipo": "ckan",
+          "dataset": "controle-de-velocidade",
+          "max_arquivos": 10
+        },
+        "andamento_de_obras": {
+          "tipo": "ckan",
+          "dataset": "andamento-de-obras",
+          "max_arquivos": 10
+        },
+        "jurisdicao_de_vias": {
+          "tipo": "ckan",
+          "dataset": "jurisdicao-de-vias",
+          "max_arquivos": 10
+        }
+      }
+    },
+    "anp_revendedores": {
+      "descricao": "ANP - Revendedores de combustíveis e GLP",
+      "base_url": "https://revendedoresapi.anp.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://www.gov.br/anp/pt-br/centrais-de-conteudo/paineis-dinamicos-da-anp/paineis-dinamicos-do-abastecimento/painel-dinamico-de-relatorio-de-revenda",
+      "observacoes": "Endpoints documentados: /v1/combustivel e /v1/glp.",
+      "catalogo": {
+        "ID": "DH-006",
+        "Sinal de mercado": "Combustíveis / Infraestrutura",
+        "Prioridade": "ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Conforme atualização da ANP",
+        "O que baixar": "CNPJ, endereço, produtos, distribuidor, tancagem, situação, coordenadas quando disponíveis",
+        "Cruza com": "Receita, SENATRAN, DNIT, OSM"
+      },
+      "endpoints": {
+        "combustivel": {
+          "caminho": "/v1/combustivel",
+          "registros": "data",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "numeropagina",
+            "tamanho": 5000
+          }
+        },
+        "glp": {
+          "caminho": "/v1/glp",
+          "registros": "data",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "numeropagina",
+            "tamanho": 5000
+          }
+        }
+      }
+    },
+    "anp_precos": {
+      "descricao": "ANP - série histórica de preços de combustíveis",
+      "base_url": "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/anp/pt-br/centrais-de-conteudo/paineis-dinamicos-da-anp/paineis-dinamicos-do-abastecimento/painel-dinamico-de-relatorio-de-revenda",
+      "observacoes": "Endpoints documentados: /v1/combustivel e /v1/glp.",
+      "catalogo": {
+        "ID": "DH-006",
+        "Sinal de mercado": "Combustíveis / Infraestrutura",
+        "Prioridade": "ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Conforme atualização da ANP",
+        "O que baixar": "CNPJ, endereço, produtos, distribuidor, tancagem, situação, coordenadas quando disponíveis",
+        "Cruza com": "Receita, SENATRAN, DNIT, OSM"
+      },
+      "endpoints": {
+        "precos_combustiveis_semestre": {
+          "tipo": "pagina",
+          "caminho": "/serie-historica-de-precos-de-combustiveis",
+          "filtro": "shpc/dsas/ca/ca-",
+          "max_arquivos": 2
+        },
+        "precos_glp_semestre": {
+          "tipo": "pagina",
+          "caminho": "/serie-historica-de-precos-de-combustiveis",
+          "filtro": "shpc/dsas/glp/glp-",
+          "max_arquivos": 2
+        }
+      }
+    },
+    "rais_caged": {
+      "descricao": "MTE - RAIS / Novo Caged - Microdados não identificados",
+      "base_url": "ftp://ftp.mtps.gov.br/pdet/microdados",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/acoes-e-programas/programas-projetos-acoes-obras-e-atividades/estatisticas-trabalho/microdados-rais-e-caged",
+      "observacoes": "Microdados identificados exigem procedimento específico; MVP deve usar não identificados. | Não testado (servidor FTP). O caminho usa o mês de dois meses atrás; confira a pasta no FTP se der erro.",
+      "catalogo": {
+        "ID": "DH-007",
+        "Sinal de mercado": "Emprego / Dinamismo econômico",
+        "Prioridade": "ALTA",
+        "API?": "NÃO",
+        "Periodicidade": "Mensal / anual conforme base",
+        "O que baixar": "Admissões, desligamentos, estoque de empregos, estabelecimentos, CNAE, ocupação, remuneração",
+        "Cruza com": "Receita, IBGE, Siconfi"
+      },
+      "endpoints": {
+        "novo_caged_movimentacao": {
+          "tipo": "arquivo",
+          "caminho": "/NOVO CAGED/{AAAA}/{AAAAMM:-2}/CAGEDMOV{AAAAMM:-2}.7z",
+          "manual": true
+        }
+      }
+    },
+    "comexstat": {
+      "descricao": "Comex Stat / MDIC - Dados gerais, municípios e base bruta",
+      "base_url": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta",
+      "observacoes": "Portal exibe opção API; para cargas grandes, priorizar CSV bruto. | A lista de arquivos foi testada, mas o download deu erro de certificado de segurança no ambiente de testes. Se acontecer no seu computador, avalie marcar 'Aceitar certificado não reconhecido' neste site.",
+      "catalogo": {
+        "ID": "DH-008",
+        "Sinal de mercado": "Comércio exterior",
+        "Prioridade": "ALTA",
+        "API?": "PARCIAL",
+        "Periodicidade": "Mensal",
+        "O que baixar": "NCM/SH4, país, município, UF, via, URF, quantidade, kg líquido, FOB, frete e seguro em importações",
+        "Cruza com": "Receita, ANTAQ, IBGE, World Bank, UN Comtrade"
+      },
+      "endpoints": {
+        "exportacao_importacao_ncm": {
+          "tipo": "pagina",
+          "caminho": "/base-de-dados-bruta",
+          "filtro": "ncm/EXP_2026.csv, ncm/IMP_2026.csv",
+          "manual": true
+        },
+        "exportacao_importacao_municipio": {
+          "tipo": "pagina",
+          "caminho": "/base-de-dados-bruta",
+          "filtro": "EXP_2026_MUN, IMP_2026_MUN"
+        },
+        "tabelas_auxiliares": {
+          "tipo": "pagina",
+          "caminho": "/base-de-dados-bruta",
+          "filtro": "bd/tabelas/",
+          "max_arquivos": 40
+        }
+      }
+    },
+    "comexstat_api": {
+      "descricao": "Comex Stat - API",
+      "base_url": "https://api-comexstat.mdic.gov.br",
+      "link_oficial": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta",
+      "observacoes": "Portal exibe opção API; para cargas grandes, priorizar CSV bruto. | A consulta de dados da API é feita por POST; este exemplo só verifica a data da última atualização.",
+      "catalogo": {
+        "ID": "DH-008",
+        "Sinal de mercado": "Comércio exterior",
+        "Prioridade": "ALTA",
+        "API?": "PARCIAL",
+        "Periodicidade": "Mensal",
+        "O que baixar": "NCM/SH4, país, município, UF, via, URF, quantidade, kg líquido, FOB, frete e seguro em importações",
+        "Cruza com": "Receita, ANTAQ, IBGE, World Bank, UN Comtrade"
+      },
+      "endpoints": {
+        "ultima_atualizacao": {
+          "caminho": "/general/dates/updated",
+          "registros": "data"
+        }
+      }
+    },
+    "bcb": {
+      "descricao": "Banco Central - séries temporais (SGS)",
+      "base_url": "https://api.bcb.gov.br",
+      "link_oficial": "https://dadosabertos.bcb.gov.br/",
+      "observacoes": "Excelente fonte para contexto econômico; selecionar poucas séries para o MVP.",
+      "catalogo": {
+        "ID": "DH-009",
+        "Sinal de mercado": "Macro / Crédito / Juros",
+        "Prioridade": "MÉDIA-ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Diária/mensal conforme série",
+        "O que baixar": "Juros, câmbio, crédito, inflação, indicadores financeiros e séries econômicas",
+        "Cruza com": "IBGE, dados internos, Comex Stat"
+      },
+      "endpoints": {
+        "selic_meta": {
+          "caminho": "/dados/serie/bcdata.sgs.432/dados",
+          "params": {
+            "formato": "json",
+            "dataInicial": "01/01/2020"
+          }
+        },
+        "ipca_mensal": {
+          "caminho": "/dados/serie/bcdata.sgs.433/dados",
+          "params": {
+            "formato": "json",
+            "dataInicial": "01/01/2020"
+          }
+        },
+        "dolar_venda": {
+          "caminho": "/dados/serie/bcdata.sgs.1/dados",
+          "params": {
+            "formato": "json",
+            "dataInicial": "01/01/2020"
+          }
+        },
+        "ibc_br": {
+          "caminho": "/dados/serie/bcdata.sgs.24363/dados",
+          "params": {
+            "formato": "json",
+            "dataInicial": "01/01/2020"
+          }
+        },
+        "saldo_credito_total": {
+          "caminho": "/dados/serie/bcdata.sgs.20539/dados",
+          "params": {
+            "formato": "json",
+            "dataInicial": "01/01/2020"
+          }
+        }
+      }
+    },
+    "aneel": {
+      "descricao": "ANEEL - Portal de Dados Abertos",
+      "base_url": "https://dadosabertos.aneel.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://dadosabertos.aneel.gov.br/",
+      "observacoes": "API CKAN facilita descoberta; consumo analítico pode ser por arquivos. | Não testado: o site recusou a conexão a partir do ambiente de testes. O nome do conjunto 'geracao_siga' precisa ser conferido em 'Listar arquivos'.",
+      "catalogo": {
+        "ID": "DH-010",
+        "Sinal de mercado": "Energia",
+        "Prioridade": "MÉDIA-ALTA",
+        "API?": "CATÁLOGO",
+        "Periodicidade": "Varia por dataset",
+        "O que baixar": "Geração, empreendimentos, distribuição, tarifas, consumidores, energia distribuída",
+        "Cruza com": "IBGE, Receita, Siconfi"
+      },
+      "endpoints": {
+        "catalogo": {
+          "caminho": "/api/3/action/package_search",
+          "params": {
+            "rows": "1000"
+          },
+          "registros": "result.results"
+        },
+        "geracao_siga": {
+          "tipo": "ckan",
+          "dataset": "siga-sistema-de-informacoes-de-geracao-da-aneel",
+          "filtro": "csv"
+        }
+      }
+    },
+    "anatel": {
+      "descricao": "Anatel - Dados de acessos, cobertura e telecom",
+      "base_url": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/anatel/pt-br/dados",
+      "observacoes": "Webservices existem em alguns serviços, mas não tratar como API única no MVP. | Não testado: endereços dos arquivos informados de memória; confira em 'Listar arquivos'.",
+      "catalogo": {
+        "ID": "DH-011",
+        "Sinal de mercado": "Conectividade / Telecom",
+        "Prioridade": "MÉDIA",
+        "API?": "PARCIAL",
+        "Periodicidade": "Mensal conforme tema",
+        "O que baixar": "Banda larga, acessos móveis, tecnologia, prestadora, cobertura, densidade",
+        "Cruza com": "IBGE, Receita"
+      },
+      "endpoints": {
+        "acessos_banda_larga_fixa": {
+          "tipo": "arquivo",
+          "caminho": "/acessos/acessos_banda_larga_fixa.zip"
+        },
+        "acessos_telefonia_movel": {
+          "tipo": "arquivo",
+          "caminho": "/acessos/acessos_telefonia_movel.zip"
+        }
+      }
+    },
+    "siconfi": {
+      "descricao": "Tesouro / Siconfi - API de Dados Abertos Siconfi",
+      "base_url": "https://apidatalake.tesouro.gov.br/ords/siconfi/tt",
+      "timeout_segundos": 180,
+      "link_oficial": "https://www.tesourotransparente.gov.br/consultas/consultas-siconfi/siconfi-api-de-dados-abertos",
+      "observacoes": "API retorna até 5.000 itens por página por padrão.",
+      "catalogo": {
+        "ID": "DH-012",
+        "Sinal de mercado": "Finanças públicas",
+        "Prioridade": "MÉDIA-ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Conforme demonstrativo",
+        "O que baixar": "Receitas, despesas, balanços, MSC, dívida e informações fiscais de entes subnacionais",
+        "Cruza com": "IBGE, Compras.gov, SINISA"
+      },
+      "endpoints": {
+        "entes": {
+          "caminho": "/entes",
+          "registros": "items",
+          "paginacao": {
+            "tipo": "offset",
+            "param": "offset",
+            "param_tamanho": "limit",
+            "tamanho": 5000
+          }
+        },
+        "dca_exemplo_sao_luis": {
+          "caminho": "/dca",
+          "params": {
+            "an_exercicio": "2024",
+            "id_ente": "2111300"
+          },
+          "registros": "items",
+          "paginacao": {
+            "tipo": "offset",
+            "param": "offset",
+            "param_tamanho": "limit",
+            "tamanho": 5000
+          }
+        },
+        "rreo_exemplo_sao_luis": {
+          "caminho": "/rreo",
+          "params": {
+            "an_exercicio": "2025",
+            "nr_periodo": "6",
+            "co_tipo_demonstrativo": "RREO",
+            "id_ente": "2111300"
+          },
+          "registros": "items",
+          "paginacao": {
+            "tipo": "offset",
+            "param": "offset",
+            "param_tamanho": "limit",
+            "tamanho": 5000
+          }
+        }
+      }
+    },
+    "compras_gov": {
+      "descricao": "Compras.gov - Portal de Dados Abertos",
+      "base_url": "https://dadosabertos.compras.gov.br",
+      "timeout_segundos": 180,
+      "link_oficial": "https://www.gov.br/compras/pt-br/cidadao/portal-de-dados-abertos",
+      "observacoes": "Bom candidato a microapp específico de oportunidades públicas. | Os módulos de licitações e contratos exigem filtros obrigatórios (órgão, datas); cadastre conforme a documentação interativa.",
+      "catalogo": {
+        "ID": "DH-013",
+        "Sinal de mercado": "Compras públicas / B2G",
+        "Prioridade": "MÉDIA-ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Contínua / conforme módulo",
+        "O que baixar": "Licitações, contratos, fornecedores, itens, materiais, serviços, preços",
+        "Cruza com": "Receita, Siconfi, CGU"
+      },
+      "endpoints": {
+        "uasg": {
+          "caminho": "/modulo-uasg/1_consultarUasg",
+          "params": {
+            "statusUasg": "true"
+          },
+          "registros": "resultado",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "pagina",
+            "max_paginas": 50
+          }
+        },
+        "itens_material": {
+          "caminho": "/modulo-material/4_consultarItemMaterial",
+          "registros": "resultado",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "pagina",
+            "param_tamanho": "tamanhoPagina",
+            "tamanho": 500,
+            "max_paginas": 20
+          }
+        },
+        "fornecedores": {
+          "caminho": "/modulo-fornecedor/1_consultarFornecedor",
+          "params": {
+            "ativo": "true"
+          },
+          "registros": "resultado",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "pagina",
+            "param_tamanho": "tamanhoPagina",
+            "tamanho": 500,
+            "max_paginas": 20
+          }
+        },
+        "grupos_material": {
+          "caminho": "/modulo-material/1_consultarGrupoMaterial",
+          "registros": "resultado",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "pagina",
+            "max_paginas": 50
+          }
+        }
+      }
+    },
+    "antaq": {
+      "descricao": "ANTAQ - Estatístico Aquaviário e bases abertas",
+      "base_url": "https://web3.antaq.gov.br/ea",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/antaq/pt-br/acesso-a-informacao/dados-abertos",
+      "observacoes": "Estatístico Aquaviário tem série desde 2010 e download de base; API pública não confirmada. | Não testado: o site não respondeu a partir do ambiente de testes.",
+      "catalogo": {
+        "ID": "DH-014",
+        "Sinal de mercado": "Portos / Transporte aquaviário",
+        "Prioridade": "MÉDIA-ALTA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Mensal para Estatístico Aquaviário",
+        "O que baixar": "Movimentação portuária, instalações, cargas, navegação, tonelagem e fluxos",
+        "Cruza com": "Comex Stat, Receita, IBGE"
+      },
+      "endpoints": {
+        "estatistico_aquaviario_2026": {
+          "tipo": "arquivo",
+          "caminho": "/txt/2026.zip",
+          "manual": true
+        }
+      }
+    },
+    "anac": {
+      "descricao": "ANAC - Dados Abertos",
+      "base_url": "https://sistemas.anac.gov.br",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.anac.gov.br/acesso-a-informacao/dados-abertos/dados-abertos",
+      "observacoes": "API específica não foi confirmada.",
+      "catalogo": {
+        "ID": "DH-015",
+        "Sinal de mercado": "Aviação / Fluxo aéreo",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Mensal/anual conforme conjunto",
+        "O que baixar": "Aeroportos, voos, passageiros, cargas, aeronaves e movimentação aeroportuária",
+        "Cruza com": "Cadastur, IBGE, Receita"
+      },
+      "endpoints": {
+        "transporte_aereo_estatisticas": {
+          "tipo": "arquivo",
+          "caminho": "/dadosabertos/Voos%20e%20opera%C3%A7%C3%B5es%20a%C3%A9reas/Dados%20Estat%C3%ADsticos%20do%20Transporte%20A%C3%A9reo/Dados_Estatisticos.csv",
+          "manual": true
+        }
+      }
+    },
+    "cadastur": {
+      "descricao": "Cadastur / Ministério do Turismo - Prestadores turísticos",
+      "base_url": "https://dados.turismo.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://www.gov.br/turismo/pt-br/acesso-a-informacao/acoes-e-programas/cadastur/cadastur",
+      "observacoes": "Validar mecanismo de extração estruturada antes de automatizar. | Há um conjunto por tipo de prestador; os demais aparecem no conjunto 'catalogo'.",
+      "catalogo": {
+        "ID": "DH-016",
+        "Sinal de mercado": "Turismo",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Conforme publicação",
+        "O que baixar": "Prestadores turísticos: meios de hospedagem, agências, transportadoras e categorias",
+        "Cruza com": "Receita, IBGE, ANAC"
+      },
+      "endpoints": {
+        "catalogo": {
+          "caminho": "/api/3/action/package_search",
+          "params": {
+            "rows": "1000"
+          },
+          "registros": "result.results"
+        },
+        "agencia_de_turismo": {
+          "tipo": "ckan",
+          "dataset": "agencia-de-turismo",
+          "filtro": "csv",
+          "max_arquivos": 2,
+          "mais_novos_no_fim": true
+        },
+        "meios_de_hospedagem": {
+          "tipo": "ckan",
+          "dataset": "meios-de-hospedagem",
+          "filtro": "csv",
+          "max_arquivos": 2,
+          "mais_novos_no_fim": true
+        },
+        "prestadores_de_servicos_turisticos_guia_turismo_2": {
+          "tipo": "ckan",
+          "dataset": "prestadores-de-servicos-turisticos-guia-turismo_2",
+          "filtro": "csv",
+          "max_arquivos": 2,
+          "mais_novos_no_fim": true
+        },
+        "restaurantes_cafeterias_e_bares": {
+          "tipo": "ckan",
+          "dataset": "restaurantes-cafeterias-e-bares",
+          "filtro": "csv",
+          "max_arquivos": 2,
+          "mais_novos_no_fim": true
+        },
+        "transportadora_turistica": {
+          "tipo": "ckan",
+          "dataset": "transportadora-turistica",
+          "filtro": "csv",
+          "max_arquivos": 2,
+          "mais_novos_no_fim": true
+        }
+      }
+    },
+    "cnes": {
+      "descricao": "CNES / DATASUS - Estabelecimentos de saúde",
+      "base_url": "ftp://ftp.datasus.gov.br/cnes",
+      "timeout_segundos": 600,
+      "link_oficial": "https://datasus.saude.gov.br/cnes-estabelecimentos/",
+      "observacoes": "Não foi validada uma API simples para o conjunto desejado. | Não testado (servidor FTP). O caminho usa o mês de dois meses atrás; confira o nome do arquivo se der erro.",
+      "catalogo": {
+        "ID": "DH-017",
+        "Sinal de mercado": "Saúde",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Mensal conforme base",
+        "O que baixar": "Estabelecimentos, hospitais, clínicas, leitos, serviços, especialidades",
+        "Cruza com": "Receita, IBGE"
+      },
+      "endpoints": {
+        "base_cnes_mensal": {
+          "tipo": "arquivo",
+          "caminho": "/BASE_DE_DADOS_CNES_{AAAAMM:-2}.ZIP",
+          "manual": true
+        }
+      }
+    },
+    "inep": {
+      "descricao": "INEP - Dados Abertos e microdados",
+      "base_url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos",
+      "observacoes": "Usar microdados e dicionários; atenção a dados protegidos. | A lista de arquivos foi testada, mas o download deu erro de certificado de segurança no ambiente de testes. Se acontecer no seu computador, avalie marcar 'Aceitar certificado não reconhecido' neste site.",
+      "catalogo": {
+        "ID": "DH-018",
+        "Sinal de mercado": "Educação",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO",
+        "Periodicidade": "Anual conforme censo",
+        "O que baixar": "Censo Escolar, Educação Superior, matrículas, instituições, cursos, Enem/Enade conforme conjunto",
+        "Cruza com": "IBGE, Receita"
+      },
+      "endpoints": {
+        "censo_escolar": {
+          "tipo": "pagina",
+          "caminho": "/microdados/censo-escolar",
+          "filtro": "microdados_censo_escolar",
+          "max_arquivos": 1,
+          "manual": true
+        },
+        "censo_educacao_superior": {
+          "tipo": "pagina",
+          "caminho": "/microdados/censo-da-educacao-superior",
+          "filtro": "zip",
+          "max_arquivos": 1,
+          "manual": true
+        }
+      }
+    },
+    "sinisa": {
+      "descricao": "SINISA - Resultados e planilhas",
+      "base_url": "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/resultados-sinisa-2025",
+      "observacoes": "Fonte muito útil para inteligência de infraestrutura municipal.",
+      "catalogo": {
+        "ID": "DH-019",
+        "Sinal de mercado": "Saneamento / Infraestrutura urbana",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO",
+        "Periodicidade": "Anual",
+        "O que baixar": "Água, esgoto, resíduos, drenagem, população atendida, redes, investimentos e indicadores",
+        "Cruza com": "IBGE, Siconfi"
+      },
+      "endpoints": {
+        "resultados_2025": {
+          "tipo": "pagina",
+          "caminho": "/resultados-sinisa-2025",
+          "filtro": "SINISA_ xlsx, SINISA_ zip"
+        }
+      }
+    },
+    "conab": {
+      "descricao": "CONAB - Dados Abertos",
+      "base_url": "https://portaldeinformacoes.conab.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://www.gov.br/conab/pt-br/acesso-a-informacao/dados-abertos",
+      "observacoes": "Não foi identificada API única para todos os conjuntos.",
+      "catalogo": {
+        "ID": "DH-020",
+        "Sinal de mercado": "Agro / Abastecimento",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Mensal/safra conforme tema",
+        "O que baixar": "Safras, produção, produtividade, estoques, armazenagem e preços",
+        "Cruza com": "IBGE, MapBiomas, INMET"
+      },
+      "endpoints": {
+        "serie_historica_graos": {
+          "tipo": "arquivo",
+          "caminho": "/downloads/arquivos/SerieHistoricaGraos.txt"
+        }
+      }
+    },
+    "inmet": {
+      "descricao": "INMET - Dados históricos",
+      "base_url": "https://portal.inmet.gov.br",
+      "timeout_segundos": 900,
+      "link_oficial": "https://portal.inmet.gov.br/dadoshistoricos",
+      "observacoes": "Há serviços específicos do INMET, mas API geral não foi validada nesta rodada.",
+      "catalogo": {
+        "ID": "DH-021",
+        "Sinal de mercado": "Clima / Meteorologia",
+        "Prioridade": "MÉDIA",
+        "API?": "NÃO VALIDADA",
+        "Periodicidade": "Diária/horária conforme estação",
+        "O que baixar": "Temperatura, chuva, vento, umidade, pressão e dados de estações",
+        "Cruza com": "CONAB, MapBiomas, logística, energia"
+      },
+      "endpoints": {
+        "dados_historicos": {
+          "tipo": "pagina",
+          "caminho": "/dadoshistoricos",
+          "filtro": "2026.zip, 2025.zip",
+          "manual": true
+        }
+      }
+    },
+    "mapbiomas": {
+      "descricao": "MapBiomas Brasil - Downloads de coleções e estatísticas",
+      "base_url": "https://brasil.mapbiomas.org",
+      "link_oficial": "https://brasil.mapbiomas.org/downloads/",
+      "observacoes": "Acesso programático depende do produto; GEE é caminho relevante. | Sem conjunto automático: a página de downloads é montada por JavaScript. Copie o link direto do arquivo desejado e cadastre como tipo 'Arquivo'.",
+      "catalogo": {
+        "ID": "DH-022",
+        "Sinal de mercado": "Uso da terra / Meio ambiente",
+        "Prioridade": "MÉDIA",
+        "API?": "PARCIAL",
+        "Periodicidade": "Anual / por coleção",
+        "O que baixar": "Cobertura e uso da terra, agricultura, pastagem, urbano, água, fogo e outros temas",
+        "Cruza com": "IBGE, CONAB, INMET"
+      },
+      "endpoints": {}
+    },
+    "mapbiomas_alerta": {
+      "descricao": "MapBiomas Alerta - API de alertas",
+      "base_url": "https://plataforma.alerta.mapbiomas.org",
+      "auth": {
+        "tipo": "bearer"
+      },
+      "link_oficial": "https://alerta.mapbiomas.org/",
+      "observacoes": "Fonte setorial, não essencial ao MVP comercial inicial. | Sem conjunto automático: a API é GraphQL e exige login próprio (token obtido por uma chamada de autenticação). Fica cadastrado para referência.",
+      "catalogo": {
+        "ID": "DH-023",
+        "Sinal de mercado": "Desmatamento / Alertas",
+        "Prioridade": "BAIXA-MÉDIA",
+        "API?": "SIM",
+        "Periodicidade": "Contínua",
+        "O que baixar": "Alertas de desmatamento e atributos territoriais",
+        "Cruza com": "IBGE, MapBiomas, clientes agro/ESG"
+      },
+      "endpoints": {}
+    },
+    "openstreetmap": {
+      "descricao": "OpenStreetMap - Overpass API e dados OSM",
+      "base_url": "https://overpass-api.de",
+      "timeout_segundos": 180,
+      "link_oficial": "https://wiki.openstreetmap.org/wiki/Overpass_API",
+      "observacoes": "Usar com cache e respeito a limites; ótimo para enriquecimento geográfico. | Não testado: o site recusou a conexão a partir do ambiente de testes. A consulta de exemplo busca postos de combustível na região de São Luís; troque a consulta (parâmetro data) conforme a necessidade.",
+      "catalogo": {
+        "ID": "DH-024",
+        "Sinal de mercado": "Geografia / Pontos de interesse",
+        "Prioridade": "ALTA",
+        "API?": "SIM",
+        "Periodicidade": "Atualização contínua",
+        "O que baixar": "Rodovias, lojas, oficinas, hotéis, restaurantes, hospitais, POIs e geometrias",
+        "Cruza com": "Todas as bases territoriais"
+      },
+      "endpoints": {
+        "postos_combustivel_sao_luis": {
+          "caminho": "/api/interpreter",
+          "params": {
+            "data": "[out:json][timeout:60];node[amenity=fuel](-2.80,-44.45,-2.40,-44.10);out;"
+          },
+          "registros": "elements"
+        }
+      }
+    },
+    "tse": {
+      "descricao": "TSE - Portal de Dados Abertos",
+      "base_url": "https://dadosabertos.tse.jus.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://dadosabertos.tse.jus.br/",
+      "observacoes": "Usar apenas de forma agregada e respeitar limites de inferência.",
+      "catalogo": {
+        "ID": "DH-025",
+        "Sinal de mercado": "Eleições / Território",
+        "Prioridade": "BAIXA",
+        "API?": "CATÁLOGO",
+        "Periodicidade": "Por eleição / atualizações",
+        "O que baixar": "Eleitorado, candidaturas, votação, resultados e zonas/seções",
+        "Cruza com": "IBGE"
+      },
+      "endpoints": {
+        "catalogo": {
+          "caminho": "/api/3/action/package_search",
+          "params": {
+            "rows": "1000"
+          },
+          "registros": "result.results"
+        },
+        "eleitorado_atual": {
+          "tipo": "ckan",
+          "dataset": "eleitorado-atual",
+          "filtro": "perfil_eleitorado_ATUAL, eleitorado_local_votacao_ATUAL"
+        }
+      }
+    },
+    "cvm": {
+      "descricao": "CVM - Portal Dados Abertos",
+      "base_url": "https://dados.cvm.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://dados.cvm.gov.br/",
+      "observacoes": "API CKAN é de catálogo; consumo principal via recursos publicados.",
+      "catalogo": {
+        "ID": "DH-026",
+        "Sinal de mercado": "Mercado financeiro / Empresas abertas",
+        "Prioridade": "BAIXA-MÉDIA",
+        "API?": "CATÁLOGO",
+        "Periodicidade": "Mensal/trimestral conforme dataset",
+        "O que baixar": "Companhias abertas, demonstrações, fundos, regulados e ofertas",
+        "Cruza com": "Receita, BCB"
+      },
+      "endpoints": {
+        "catalogo": {
+          "caminho": "/api/3/action/package_search",
+          "params": {
+            "rows": "1000"
+          },
+          "registros": "result.results"
+        },
+        "cadastro_companhias_abertas": {
+          "tipo": "ckan",
+          "dataset": "cia_aberta-cad",
+          "filtro": "csv"
+        }
+      }
+    },
+    "ibama": {
+      "descricao": "IBAMA - Portal Dados Abertos",
+      "base_url": "https://dadosabertos.ibama.gov.br",
+      "timeout_segundos": 300,
+      "link_oficial": "https://dadosabertos.ibama.gov.br/",
+      "observacoes": "Muito útil para módulos ambientais e agro.",
+      "catalogo": {
+        "ID": "DH-027",
+        "Sinal de mercado": "Meio ambiente / Fiscalização",
+        "Prioridade": "BAIXA-MÉDIA",
+        "API?": "CATÁLOGO",
+        "Periodicidade": "Varia por dataset",
+        "O que baixar": "Embargos, fiscalização, autorizações e bases ambientais abertas",
+        "Cruza com": "IBGE, MapBiomas, clientes agro/ESG"
+      },
+      "endpoints": {
+        "catalogo": {
+          "caminho": "/api/3/action/package_search",
+          "params": {
+            "rows": "1000"
+          },
+          "registros": "result.results"
+        },
+        "termos_de_embargo": {
+          "tipo": "ckan",
+          "dataset": "fiscalizacao-termo-de-embargo",
+          "filtro": "csv"
+        },
+        "autos_de_infracao": {
+          "tipo": "ckan",
+          "dataset": "fiscalizacao-auto-de-infracao",
+          "filtro": "csv"
+        }
+      }
+    },
+    "portal_transparencia": {
+      "descricao": "CGU - Portal da Transparência - Downloads e API",
+      "base_url": "https://api.portaldatransparencia.gov.br/api-de-dados",
+      "auth": {
+        "tipo": "api_key",
+        "nome": "chave-api-dados",
+        "onde": "header"
+      },
+      "link_oficial": "https://portaldatransparencia.gov.br/download-de-dados",
+      "observacoes": "Selecionar temas úteis ao negócio para evitar excesso de dados. | Exige chave gratuita: cadastre o e-mail em portaldatransparencia.gov.br/api-de-dados/cadastrar-email e preencha a chave neste site.",
+      "catalogo": {
+        "ID": "DH-028",
+        "Sinal de mercado": "Gastos públicos / Transparência",
+        "Prioridade": "MÉDIA",
+        "API?": "SIM",
+        "Periodicidade": "Diária/mensal conforme tema",
+        "O que baixar": "Despesas, contratos, licitações, transferências, favorecidos, sanções, notas fiscais",
+        "Cruza com": "Compras.gov, Siconfi, Receita"
+      },
+      "endpoints": {
+        "orgaos_siafi": {
+          "caminho": "/orgaos-siafi",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "pagina",
+            "max_paginas": 100
+          }
+        }
+      }
+    },
+    "world_bank": {
+      "descricao": "World Bank - Indicators API",
+      "base_url": "https://api.worldbank.org",
+      "link_oficial": "https://data.worldbank.org/",
+      "observacoes": "API V2; exemplo oficial usa api.worldbank.org/v2/.",
+      "catalogo": {
+        "ID": "DH-029",
+        "Sinal de mercado": "Economia internacional",
+        "Prioridade": "BAIXA-MÉDIA",
+        "API?": "SIM",
+        "Periodicidade": "Anual/mensal conforme indicador",
+        "O que baixar": "PIB, população, renda, comércio, infraestrutura e milhares de indicadores internacionais",
+        "Cruza com": "Comex Stat, UN Comtrade, OECD"
+      },
+      "endpoints": {
+        "pib_brasil": {
+          "caminho": "/v2/country/BR/indicator/NY.GDP.MKTP.CD",
+          "params": {
+            "format": "json"
+          },
+          "registros": "1",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "page",
+            "param_tamanho": "per_page",
+            "tamanho": 1000
+          }
+        },
+        "populacao_brasil": {
+          "caminho": "/v2/country/BR/indicator/SP.POP.TOTL",
+          "params": {
+            "format": "json"
+          },
+          "registros": "1",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "page",
+            "param_tamanho": "per_page",
+            "tamanho": 1000
+          }
+        },
+        "pib_per_capita_brasil": {
+          "caminho": "/v2/country/BR/indicator/NY.GDP.PCAP.CD",
+          "params": {
+            "format": "json"
+          },
+          "registros": "1",
+          "paginacao": {
+            "tipo": "pagina",
+            "param": "page",
+            "param_tamanho": "per_page",
+            "tamanho": 1000
+          }
+        }
+      }
+    },
+    "un_comtrade": {
+      "descricao": "UN Comtrade - Trade Data API",
+      "base_url": "https://comtradeapi.un.org",
+      "link_oficial": "https://comtrade.un.org/",
+      "observacoes": "Preview gratuito limitado; APIs completas dependem de plano/chave.",
+      "catalogo": {
+        "ID": "DH-030",
+        "Sinal de mercado": "Comércio internacional",
+        "Prioridade": "BAIXA-MÉDIA",
+        "API?": "SIM",
+        "Periodicidade": "Mensal/anual",
+        "O que baixar": "Importações/exportações por país, parceiro, HS e fluxo",
+        "Cruza com": "Comex Stat, World Bank, FAOSTAT"
+      },
+      "endpoints": {
+        "exportacoes_brasil_2023_previa": {
+          "caminho": "/public/v1/preview/C/A/HS",
+          "params": {
+            "reporterCode": "76",
+            "period": "2023",
+            "cmdCode": "TOTAL",
+            "flowCode": "X"
+          },
+          "registros": "data"
+        }
+      }
+    },
+    "faostat": {
+      "descricao": "FAOSTAT - FAOSTAT Data e API Developer Portal",
+      "base_url": "https://bulks-faostat.fao.org",
+      "timeout_segundos": 600,
+      "link_oficial": "https://www.fao.org/faostat/",
+      "observacoes": "FAOSTAT informa API Developer Portal e bulk download.",
+      "catalogo": {
+        "ID": "DH-031",
+        "Sinal de mercado": "Agro internacional",
+        "Prioridade": "BAIXA",
+        "API?": "SIM",
+        "Periodicidade": "Anual / conforme domínio",
+        "O que baixar": "Produção agrícola, alimentos, preços, uso da terra e indicadores internacionais",
+        "Cruza com": "CONAB, World Bank, UN Comtrade"
+      },
+      "endpoints": {
+        "producao_agricola": {
+          "tipo": "arquivo",
+          "caminho": "/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip",
+          "manual": true
+        }
+      }
+    },
+    "oecd": {
+      "descricao": "OECD - Data Explorer / SDMX API",
+      "base_url": "https://sdmx.oecd.org/public/rest",
+      "timeout_segundos": 180,
+      "link_oficial": "https://data-explorer.oecd.org/",
+      "observacoes": "Uso mais avançado; não essencial ao MVP Brasil. | Exemplo com um conjunto de dados; outros seguem o mesmo formato trocando o código do dataflow no caminho.",
+      "catalogo": {
+        "ID": "DH-032",
+        "Sinal de mercado": "Economia / Produtividade internacional",
+        "Prioridade": "BAIXA",
+        "API?": "SIM",
+        "Periodicidade": "Conforme dataset",
+        "O que baixar": "Economia, produtividade, comércio, emprego, inovação e políticas públicas",
+        "Cruza com": "World Bank, Comex Stat, BCB"
+      },
+      "endpoints": {
+        "pib_trimestral_crescimento": {
+          "caminho": "/data/OECD.SDD.NAD,DSD_NAMAIN1@DF_QNA_EXPENDITURE_GROWTH_OECD,/all",
+          "params": {
+            "startPeriod": "{AAAA:-1}-Q1",
+            "format": "csvfile"
+          },
+          "formato_resposta": "csv",
+          "separador": ","
+        }
+      }
+    },
+    "logcomex": {
+      "descricao": "Logcomex - Plataforma comercial de inteligência de comércio exterior",
+      "base_url": "https://www.logcomex.com",
+      "link_oficial": "https://www.logcomex.com/",
+      "observacoes": "Não há base completa gratuita para download identificada; tratar como camada premium. | Fonte comercial, sem dados públicos para baixar. Fica cadastrada para referência.",
+      "catalogo": {
+        "ID": "DH-033",
+        "Sinal de mercado": "Comércio exterior premium",
+        "Prioridade": "OPCIONAL",
+        "API?": "NÃO PÚBLICA",
+        "Periodicidade": "Conforme contrato",
+        "O que baixar": "Inteligência detalhada de importadores, embarques e fornecedores conforme produto contratado",
+        "Cruza com": "Comex Stat, Receita, ANTAQ"
+      },
+      "endpoints": {}
     }
   }
 }

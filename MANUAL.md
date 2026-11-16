@@ -31,10 +31,17 @@ Se a porta 8000 estiver ocupada, use outra: `python app.py --porta 9000`.
 | Termo | O que significa | Exemplo |
 |---|---|---|
 | **Site** | Uma fonte de dados, com endereço e (se preciso) login | IBGE SIDRA |
-| **Conjunto de dados** | Uma consulta específica dentro de um site; gera um arquivo | IPCA dos últimos 12 meses |
+| **Conjunto de dados** | Uma consulta ou um grupo de arquivos dentro de um site | IPCA dos últimos 12 meses |
 | **Identificador** | Nome curto, em minúsculas, sem espaços nem acentos; vira nome de pasta ou arquivo | `ibge_sidra`, `ipca_12_meses` |
 
-Um site pode ter vários conjuntos de dados.
+Um site pode ter vários conjuntos de dados. Cada conjunto tem um **tipo**:
+
+| Tipo | Para que serve | O que é gravado |
+|---|---|---|
+| **Tabela** | APIs (JSON) e arquivos CSV que devem virar tabela | `dados/<site>/<conjunto>.csv` |
+| **Arquivo** | Um arquivo de endereço fixo, baixado como está (ZIP, XLSX, TXT...) | `dados/<site>/<conjunto>/<arquivo>` |
+| **Página com vários arquivos** | Uma página do site com links para arquivos; a plataforma acha os links | idem |
+| **Portal CKAN** | Portais de dados abertos (ANTT, ANEEL, TSE, CVM, IBAMA...); a plataforma lê a lista de recursos do conjunto | idem |
 
 ## 4. A tela, aba por aba
 
@@ -53,33 +60,58 @@ site selecionado.
 | Login no site | Ver seção 5 |
 | Tempo máximo de espera | Em segundos. O padrão é 60; aumente para arquivos grandes (a ANP está com 600) |
 
-**Conjuntos de dados do site**
+**Dados do site (continuação)**
 
 | Campo | O que preencher |
 |---|---|
-| Identificador | Nome curto do conjunto. Vira o nome do arquivo `.csv` |
-| Caminho | O que vem depois do endereço do site, ex.: `/api/v1/localidades/estados` |
-| Parâmetros | Opcional. Um por linha, no formato `chave=valor`, ex.: `formato=json` |
+| Página oficial | Link de consulta para a página do órgão |
+| Observações | Anotações livres sobre a fonte |
+| Aceitar certificado não reconhecido | Deixe desmarcado. Marque só se o site der erro de certificado e você confiar no endereço: isso desliga uma checagem de segurança da conexão |
 
-Em **Formato da resposta e paginação** ficam as opções avançadas:
+Os sites vindos do catálogo mostram também um quadro com ID, sinal de
+mercado, prioridade e o que baixar. A caixa **Buscar site** filtra a lista.
+
+**Conjuntos de dados do site**
+
+| Campo | Vale para | O que preencher |
+|---|---|---|
+| Identificador | todos | Nome curto do conjunto |
+| Tipo | todos | Tabela, Arquivo, Página com vários arquivos ou Portal CKAN |
+| Caminho | tabela, arquivo, página | O que vem depois do endereço do site |
+| Parâmetros | tabela, arquivo, página | Opcional. Um por linha, `chave=valor` |
+| Conjunto no portal (dataset) | CKAN | O final do endereço do conjunto, ex.: `rntrc` |
+| Filtro | página, CKAN | Termos separados por vírgula; basta um aparecer no nome ou endereço do arquivo. Palavras do mesmo termo precisam aparecer todas. Ex.: `municipio 2026, csv` |
+| Máximo de arquivos novos por vez | página, CKAN | Padrão 20. O que sobrar é baixado na próxima vez |
+| Os mais novos ficam no fim | página, CKAN | Marque quando a lista do site começa pelos mais antigos |
+| Não incluir no "Baixar tudo" | todos | Para arquivos muito grandes; só baixam pelo botão do próprio conjunto |
+
+Para o tipo Tabela, em **Formato da resposta e paginação**:
 
 | Campo | Quando usar |
 |---|---|
-| Formato da resposta | `JSON` para APIs; `Arquivo CSV` para sites que publicam arquivos (ANP) |
-| Onde está a lista no JSON | Quando os dados vêm dentro de outro campo, ex.: `data.items`. Vazio se a resposta já é a lista |
+| Formato da resposta | `JSON` para APIs; `Arquivo CSV` para CSV que deve virar tabela |
+| Onde está a lista no JSON | Quando os dados vêm dentro de outro campo, ex.: `data.items`. Aceita posição em lista, ex.: `1` (Banco Mundial) |
 | A primeira linha traz os nomes das colunas | Marque para a SIDRA/IBGE |
 | Separador do CSV | Normalmente `;` em sites brasileiros |
 | Codificação do texto | Troque para Latin-1 se os acentos saírem errados |
+| Método | `GET` (padrão) ou `POST`, quando a consulta vai no corpo |
 | Paginação | Ver seção 6 |
+
+**Endereços que mudam todo mês**
+
+O caminho e os parâmetros aceitam marcadores de data, preenchidos no dia do
+download: `{AAAA}`, `{MM}`, `{AAAA-MM}` e `{AAAAMM}`. Um número depois de
+`:` desloca em meses: `{AAAA-MM:-1}` é o mês passado. Exemplo (Receita):
+`/public.php/dav/files/.../{AAAA-MM:-1}/Cnaes.zip`.
 
 **Botões**
 
 | Botão | O que faz |
 |---|---|
-| Testar conexão | Faz uma consulta e mostra as primeiras 20 linhas. Não grava nada e não exige salvar antes |
-| Salvar e baixar | Salva o site e baixa esse conjunto por completo |
+| Testar conexão / Listar arquivos | Mostra as primeiras 20 linhas, ou a lista de arquivos encontrados. Não grava nada |
+| Salvar e baixar | Salva o site e baixa esse conjunto |
 | Remover | Tira o conjunto do site (vale ao salvar) |
-| + Adicionar conjunto | Cria mais uma consulta no mesmo site |
+| + Adicionar conjunto | Cria mais um conjunto no mesmo site |
 | Salvar site | Grava as alterações |
 | Excluir site | Remove o cadastro. Os dados já baixados são mantidos |
 
@@ -87,7 +119,8 @@ Em **Formato da resposta e paginação** ficam as opções avançadas:
 
 O botão **Baixar tudo**, no topo, baixa todos os conjuntos de todos os
 sites, um de cada vez, mostrando a situação de cada um. Se um site falhar,
-os demais continuam.
+os demais continuam. Conjuntos marcados como "Não incluir no Baixar tudo"
+ficam de fora.
 
 ### 4.3 Dados baixados
 
@@ -139,22 +172,33 @@ que pode haver mais dados.
 ## 7. Onde ficam os arquivos
 
 ```
-config/fontes.json            sites cadastrados (a tela edita esse arquivo)
-config/segredos.json          tokens e senhas (só no seu computador)
-dados/<site>/<conjunto>.csv   dados baixados
-dados/_historico.csv          registro dos downloads
+config/fontes.json                      sites cadastrados (a tela edita esse arquivo)
+config/segredos.json                    tokens e senhas (só no seu computador)
+dados/<site>/<conjunto>.csv             tabela mais recente
+dados/<site>/_versoes/<conjunto>/       versões anteriores da tabela, com data
+dados/<site>/<conjunto>/                arquivos baixados como estão
+dados/<site>/<conjunto>/_arquivos.csv   origem, data, tamanho e hash de cada arquivo
+dados/_historico.csv                    registro dos downloads
 ```
 
-- Cada novo download **substitui** o arquivo anterior do mesmo conjunto.
-- Os `.csv` usam `;` como separador e abrem direto no Excel.
-- Campos dentro de campos viram colunas com ponto, ex.: `regiao.sigla`.
+**Nada é sobrescrito.**
 
-Para ler em Python:
+- Tabelas: o `.csv` principal é sempre o mais recente; cada vez que o
+  conteúdo muda, uma cópia datada é guardada em `_versoes`.
+- Arquivos: só é baixado o que é novo ou mudou no site. Se um arquivo de
+  mesmo nome mudar, o novo é gravado com a data no nome
+  (`arquivo__20261116-180000.zip`) e o antigo permanece.
+
+Os `.csv` usam `;` como separador e abrem direto no Excel. Campos dentro de
+campos viram colunas com ponto, ex.: `regiao.sigla`.
 
 ```python
 import pandas as pd
 ipca = pd.read_csv("dados/ibge_sidra/ipca_12_meses.csv", sep=";")
 ```
+
+Arquivos ZIP e XLSX são guardados como vieram; a plataforma não os abre nem
+transforma.
 
 ## 8. Baixar sem abrir a tela
 
@@ -167,17 +211,53 @@ python baixar.py ibge_sidra      # só um site
 python baixar.py bcb selic       # só um conjunto
 ```
 
-## 9. Sites que já vêm cadastrados
+## 9. Fontes já cadastradas (Catálogo Mestre)
 
-| Identificador | Site | Conjuntos |
-|---|---|---|
-| `bcb` | Banco Central (SGS) | `selic`, `ipca` |
-| `ibge` | IBGE - localidades | `estados` |
-| `ibge_sidra` | IBGE - SIDRA | `ipca_12_meses` |
-| `anp` | ANP - dados abertos | `precos_combustiveis_2024_s1` |
+As 33 fontes do catálogo estão cadastradas em 36 sites (IBGE, ANP e Comex
+Stat ocupam dois cada), com 110 conjuntos. Situação no teste feito em
+16/11/2026 contra os sites reais:
 
-São exemplos e podem ser editados ou excluídos. Use "Testar conexão" em
-cada um na primeira vez.
+| ID | Site (identificador) | Como baixa | Situação |
+|---|---|---|---|
+| DH-001 | `ibge`, `ibge_sidra` | API | Testado |
+| DH-002 | `receita_cnpj` | Arquivos ZIP do mês passado | Testado. Empresas, Estabelecimentos e Sócios fora do "Baixar tudo" |
+| DH-003 | `senatran` | Página com planilhas mensais | Testado |
+| DH-004 | `antt` | Portal CKAN | Testado (portal lento, às vezes dá tempo esgotado) |
+| DH-005 | `dnit` | Portal CKAN | **Não testado**: o site recusou a conexão do ambiente de testes |
+| DH-006 | `anp_revendedores`, `anp_precos` | API e página com arquivos | Testado |
+| DH-007 | `rais_caged` | Arquivo em FTP | **Não testado** |
+| DH-008 | `comexstat`, `comexstat_api` | Página com CSVs; API | Lista testada; download deu erro de certificado (ver seção 11) |
+| DH-009 | `bcb` | API | Testado |
+| DH-010 | `aneel` | Portal CKAN | **Não testado**: conexão recusada |
+| DH-011 | `anatel` | Arquivos ZIP | **Não testado** |
+| DH-012 | `siconfi` | API | Testado |
+| DH-013 | `compras_gov` | API | Testado |
+| DH-014 | `antaq` | Arquivo ZIP | **Não testado**: site não respondeu |
+| DH-015 | `anac` | Arquivo CSV (360 MB) | Endereço conferido; download completo não feito |
+| DH-016 | `cadastur` | Portal CKAN | Testado |
+| DH-017 | `cnes` | Arquivo em FTP | **Não testado** |
+| DH-018 | `inep` | Página com ZIPs | Lista testada; download deu erro de certificado |
+| DH-019 | `sinisa` | Página com arquivos | Testado |
+| DH-020 | `conab` | Arquivo TXT | Testado |
+| DH-021 | `inmet` | Página com ZIPs | Lista e endereço conferidos; download completo não feito |
+| DH-022 | `mapbiomas` | — | Só referência: página montada por JavaScript |
+| DH-023 | `mapbiomas_alerta` | — | Só referência: API GraphQL com login próprio |
+| DH-024 | `openstreetmap` | API Overpass | **Não testado**: conexão recusada |
+| DH-025 | `tse` | Portal CKAN | Lista testada; download não (servidor de arquivos fora do ambiente de testes) |
+| DH-026 | `cvm` | Portal CKAN | Testado |
+| DH-027 | `ibama` | Portal CKAN | Testado (portal instável) |
+| DH-028 | `portal_transparencia` | API com chave | Aguardando a sua chave |
+| DH-029 | `world_bank` | API | Testado |
+| DH-030 | `un_comtrade` | API (prévia gratuita) | Testado |
+| DH-031 | `faostat` | Arquivo ZIP | Endereço conferido; download completo não feito |
+| DH-032 | `oecd` | API (CSV) | Testado |
+| DH-033 | `logcomex` | — | Só referência: fonte comercial |
+
+"Não testado" significa que o endereço foi cadastrado mas não pôde ser
+conferido; use **Listar arquivos** ou **Testar conexão** na primeira vez. O
+campo Observações de cada site traz os detalhes.
+
+Para cadastrar outras fontes, use **+ Novo site** (seção 10).
 
 ## 10. Exemplo: cadastrar um site novo
 
@@ -199,16 +279,21 @@ Para baixar a lista de municípios do IBGE:
 | "erro HTTP 404" | Caminho errado | Confira o caminho na documentação do site |
 | "erro HTTP 401" ou "403" | Login ausente ou inválido | Revise o tipo de login e a credencial |
 | "A resposta do site não é um JSON válido" | O site entrega um arquivo, não uma API | Mude o formato para "Arquivo CSV" |
+| "o certificado de segurança do site não foi reconhecido" | O servidor usa um certificado que o Python não reconhece | Se confiar no endereço, marque "Aceitar certificado não reconhecido" no site |
+| "Nenhum arquivo encontrado" | Filtro restritivo demais ou página montada por JavaScript | Afrouxe o filtro; se não houver links, cadastre o endereço direto como tipo Arquivo |
 | Acentos errados | Codificação diferente | Troque a codificação para Latin-1 |
 | Tudo veio numa coluna só | Separador errado | Ajuste o separador do CSV (`;` ou `,`) |
 | "Limite de páginas atingido" | Há mais dados que o limite | Aumente "Máximo de páginas" |
 
 ## 12. Limites atuais
 
-- Lê respostas em JSON e CSV. Planilhas Excel (`.xlsx`) e arquivos
-  compactados (`.zip`) não são lidos.
-- Não guarda versões antigas: cada download substitui o anterior.
-- Só faz consultas de leitura (GET); não atende sites que exigem login por
-  formulário ou OAuth.
+- Arquivos ZIP, XLSX, 7z e TXT são baixados e guardados como vieram; a
+  plataforma não os abre nem os transforma em tabela.
+- Páginas montadas por JavaScript (MapBiomas, painéis) não têm links que a
+  plataforma consiga ler.
+- Não atende sites que exigem login por formulário, OAuth ou token obtido
+  por chamada própria (MapBiomas Alerta).
 - O agendamento automático não é feito pela tela; use `baixar.py` com o
   agendador do sistema.
+- "Baixar tudo" é feito um conjunto por vez; com muitas fontes, demora.
+
