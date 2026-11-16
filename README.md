@@ -69,6 +69,10 @@ python baixar.py bcb selic       # só um conjunto
 meses) e `anp` (preços de combustíveis, arquivo CSV). Podem ser editados ou
 excluídos pela tela.
 
+## Manual
+
+O passo a passo completo está em [MANUAL.md](MANUAL.md).
+
 ## Testes
 
 ```bash
