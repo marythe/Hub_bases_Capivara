@@ -1,0 +1,48 @@
+{
+  "fontes": {
+    "bcb": {
+      "descricao": "Banco Central do Brasil - séries temporais (SGS)",
+      "base_url": "https://api.bcb.gov.br",
+      "endpoints": {
+        "selic": {
+          "caminho": "/dados/serie/bcdata.sgs.432/dados",
+          "params": {"formato": "json", "dataInicial": "01/01/2020"}
+        },
+        "ipca": {
+          "caminho": "/dados/serie/bcdata.sgs.433/dados",
+          "params": {"formato": "json", "dataInicial": "01/01/2020"}
+        }
+      }
+    },
+    "ibge": {
+      "descricao": "IBGE - localidades",
+      "base_url": "https://servicodados.ibge.gov.br",
+      "endpoints": {
+        "estados": {"caminho": "/api/v1/localidades/estados"}
+      }
+    },
+    "ibge_sidra": {
+      "descricao": "IBGE - SIDRA (tabelas de pesquisas)",
+      "base_url": "https://apisidra.ibge.gov.br",
+      "endpoints": {
+        "ipca_12_meses": {
+          "caminho": "/values/t/1737/n1/all/v/63/p/last%2012",
+          "primeira_linha_cabecalho": true
+        }
+      }
+    },
+    "anp": {
+      "descricao": "ANP - dados abertos (arquivos CSV, não tem API)",
+      "base_url": "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos",
+      "timeout_segundos": 600,
+      "endpoints": {
+        "precos_combustiveis_2024_s1": {
+          "caminho": "/shpc/dsas/ca/ca-2024-01.csv",
+          "formato_resposta": "csv",
+          "separador": ";",
+          "codificacao": "latin1"
+        }
+      }
+    }
+  }
+}

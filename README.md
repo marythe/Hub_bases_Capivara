@@ -1,120 +1,78 @@
-# Plataforma de conexão com APIs (R)
+# Plataforma de Dados
 
-Uma única plataforma para baixar dados de vários sites (IBGE, ANP, Banco
-Central e quantos mais forem necessários). Cada site é um bloco no arquivo
-`config/fontes.yml`; um comando baixa tudo para a pasta `dados/`.
+Uma única plataforma, em Python, para conectar em vários sites (IBGE, ANP,
+Banco Central e quantos mais forem necessários) e baixar os dados de todos
+para um repositório local. Tudo é feito por uma tela no navegador.
 
-```
-config/fontes.yml   -> onde cada site é configurado
-baixar.R            -> comando que baixa os dados
-R/conectores.R      -> motor (não precisa mexer para adicionar sites)
-dados/              -> repositório de dados baixados (criado ao rodar)
-```
+## Como usar
 
-## Instalação
-
-Com o R instalado, uma única vez:
-
-```r
-install.packages(c("httr2", "jsonlite", "yaml"))
-```
-
-## Uso
-
-No terminal, dentro da pasta do projeto:
+Só precisa do Python 3.9 ou mais novo — não há nada para instalar.
 
 ```bash
-Rscript baixar.R --listar        # mostra os sites configurados
-Rscript baixar.R                 # baixa tudo
-Rscript baixar.R ibge_sidra      # só um site
-Rscript baixar.R bcb selic       # só um endpoint de um site
+python app.py
 ```
 
-Ou de dentro do R/RStudio:
+O navegador abre em `http://127.0.0.1:8000` com quatro abas:
 
-```r
-source("R/conectores.R")
-config <- ler_config()
-baixar_tudo(config)                       # tudo
-ipca <- baixar_endpoint(config, "ibge_sidra", "ipca_12_meses")  # direto na memória
-```
-
-Resultado:
-
-- `dados/<site>/<endpoint>.csv` e `.rds` — os dados de cada endpoint
-  (cada execução substitui o arquivo anterior);
-- `dados/_registro.csv` — histórico de cada download (data, linhas, erro).
-
-Se um site falhar, os outros continuam sendo baixados.
-
-## Como adicionar um site novo
-
-Acrescente um bloco em `config/fontes.yml`:
-
-```yaml
-fontes:
-  nome_do_site:
-    descricao: Texto livre
-    base_url: https://api.site.com
-    endpoints:
-      nome_dos_dados:
-        caminho: /rota/da/api
-```
-
-### Campos da fonte (site)
-
-| Campo | Para que serve |
+| Aba | Para que serve |
 |---|---|
-| `base_url` | Endereço base do site (obrigatório) |
-| `descricao` | Texto livre |
-| `auth` | Login, ver abaixo (omitir se a API é pública) |
-| `cabecalhos` | Cabeçalhos HTTP extras, ex.: `Accept: application/json` |
-| `timeout_segundos` | Tempo máximo por requisição (padrão 60) |
-| `tentativas` | Tentativas em caso de falha temporária (padrão 3) |
+| **Sites** | Cadastrar cada site e os conjuntos de dados que quer dele. "Testar conexão" mostra as primeiras linhas sem gravar nada. |
+| **Dados baixados** | Ver, pré-visualizar e baixar os arquivos `.csv`. |
+| **Histórico** | Registro de cada download, com data, nº de linhas e erros. |
+| **Como funciona** | Resumo dentro da própria tela. |
 
-### Campos do endpoint (cada conjunto de dados)
+O botão **Baixar tudo** busca todos os conjuntos de todos os sites. Se um
+site falhar, os outros continuam.
 
-| Campo | Para que serve |
-|---|---|
-| `caminho` | Rota depois do `base_url` (obrigatório) |
-| `params` | Parâmetros da URL (`?chave=valor`) |
-| `registros` | Onde fica a lista dentro do JSON, ex.: `data.items`. Omitir se a resposta já é a lista |
-| `formato_resposta` | `json` (padrão) ou `csv` (para sites que publicam arquivos, como a ANP) |
-| `separador` | Separador do CSV (padrão `,`) |
-| `codificacao` | Codificação do texto, ex.: `latin1` (padrão `UTF-8`) |
-| `primeira_linha_cabecalho` | `true` quando a 1ª linha traz os nomes das colunas (SIDRA) |
-| `paginacao` | Ver abaixo |
+## Como funciona
 
-### Autenticação
-
-As senhas **não** ficam no arquivo de configuração. Copie `.Renviron.example`
-para `.Renviron`, preencha as credenciais e, no YAML, informe só o nome da
-variável:
-
-```yaml
-auth: { tipo: bearer,  token_env: SITE_TOKEN }
-auth: { tipo: api_key, chave_env: SITE_CHAVE, nome: X-API-Key, onde: header }  # ou onde: query
-auth: { tipo: basic,   usuario_env: SITE_USUARIO, senha_env: SITE_SENHA }
+```
+ navegador (tela)  <->  app.py (roda no seu computador)  <->  sites (IBGE, ANP, ...)
+                              |
+                              +-- config/fontes.json     sites cadastrados
+                              +-- config/segredos.json   tokens e senhas (fora do Git)
+                              +-- dados/<site>/<conjunto>.csv
+                              +-- dados/_historico.csv
 ```
 
-### Paginação
+- A tela é uma página HTML; quem conversa com os sites é o programa Python
+  rodando na sua máquina (um navegador sozinho não consegue acessar a
+  maioria das APIs nem gravar arquivos).
+- Cada **site** tem um endereço e, se precisar, um login (token, chave de
+  API ou usuário e senha).
+- Cada **conjunto de dados** é uma consulta ao site (caminho + parâmetros)
+  e gera um arquivo `.csv`. Um novo download substitui o arquivo anterior.
+- Sites sem API que publicam arquivos CSV (caso da ANP) funcionam
+  escolhendo o formato "Arquivo CSV".
+- APIs que entregam os dados em partes são tratadas pela opção de paginação
+  (por página, por posição ou por cursor).
+- O programa só aceita acesso do próprio computador.
 
-Para APIs que entregam os dados em partes:
+Os `.csv` usam `;` como separador e abrem direto no Excel. Em Python:
 
-```yaml
-paginacao: { tipo: pagina, param: page,   param_tamanho: per_page, tamanho: 100 }
-paginacao: { tipo: offset, param: offset, param_tamanho: limit,    tamanho: 200 }
-paginacao: { tipo: cursor, param: cursor, campo_proximo: meta.next }
+```python
+import pandas as pd
+ipca = pd.read_csv("dados/ibge_sidra/ipca_12_meses.csv", sep=";")
 ```
 
-No tipo `cursor`, `campo_proximo` é o campo da resposta com o próximo cursor
-(ou com a URL completa da próxima página). `max_paginas` (padrão 1000) limita
-o total de páginas.
+## Sem abrir a tela (para agendar)
+
+```bash
+python baixar.py                 # todos os sites
+python baixar.py ibge_sidra      # só um site
+python baixar.py bcb selic       # só um conjunto
+```
+
+## Sites de exemplo já cadastrados
+
+`bcb` (Selic e IPCA), `ibge` (estados), `ibge_sidra` (IPCA dos últimos 12
+meses) e `anp` (preços de combustíveis, arquivo CSV). Podem ser editados ou
+excluídos pela tela.
 
 ## Testes
 
 ```bash
-Rscript tests/testthat.R
+python -m unittest discover tests
 ```
 
-Os testes usam respostas simuladas, sem acessar a internet.
+Usam um site falso local, sem acessar a internet.

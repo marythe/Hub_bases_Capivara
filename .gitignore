@@ -1,5 +1,5 @@
-.Renviron
+config/segredos.json
 dados/
-.Rhistory
-.RData
-.Rproj.user/
+__pycache__/
+*.pyc
+*.tmp
