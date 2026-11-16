@@ -1,0 +1,8 @@
+# Copie este arquivo para ".Renviron" (que não vai para o Git) e preencha
+# as credenciais de cada site. Os nomes devem ser os mesmos usados em
+# config/fontes.yml (campos token_env, chave_env, usuario_env, senha_env).
+
+SITE_TOKEN=
+OUTRO_API_KEY=
+TERCEIRO_USUARIO=
+TERCEIRO_SENHA=
