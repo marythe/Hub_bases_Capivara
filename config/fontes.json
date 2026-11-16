@@ -12,7 +12,10 @@
         "API?": "SIM",
         "Periodicidade": "Varia por dataset",
         "O que baixar": "Municípios, códigos IBGE, população, agregados estatísticos e classificações",
-        "Cruza com": "Receita, SENATRAN, RAIS/Caged, Siconfi, INEP, CNES, SINISA"
+        "Cruza com": "Receita, SENATRAN, RAIS/Caged, Siconfi, INEP, CNES, SINISA",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Sem custo de licença para os dados públicos; observar limites técnicos e termos de uso."
       },
       "endpoints": {
         "municipios": {
@@ -42,7 +45,10 @@
         "API?": "SIM",
         "Periodicidade": "Varia por dataset",
         "O que baixar": "Municípios, códigos IBGE, população, agregados estatísticos e classificações",
-        "Cruza com": "Receita, SENATRAN, RAIS/Caged, Siconfi, INEP, CNES, SINISA"
+        "Cruza com": "Receita, SENATRAN, RAIS/Caged, Siconfi, INEP, CNES, SINISA",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Sem custo de licença para os dados públicos; observar limites técnicos e termos de uso."
       },
       "endpoints": {
         "populacao_municipios": {
@@ -72,7 +78,10 @@
         "API?": "NÃO",
         "Periodicidade": "Mensal / conforme publicação",
         "O que baixar": "Empresas, estabelecimentos, CNAEs, municípios, natureza jurídica, porte, Simples",
-        "Cruza com": "IBGE, RAIS/Caged, ANP, Compras.gov, dados internos do cliente"
+        "Cruza com": "IBGE, RAIS/Caged, ANP, Compras.gov, dados internos do cliente",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Download público dos dados abertos do CNPJ; custo apenas de infraestrutura/processamento."
       },
       "endpoints": {
         "cnaes": {
@@ -269,7 +278,10 @@
         "API?": "NÃO",
         "Periodicidade": "Mensal",
         "O que baixar": "Frota por município e tipo; ano/modelo; combustível; espécie/eixos",
-        "Cruza com": "ANTT, DNIT, ANP, IBGE, Receita"
+        "Cruza com": "ANTT, DNIT, ANP, IBGE, Receita",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Arquivos públicos de frota. Consultas restritas de veículo/condutor são tratadas separadamente."
       },
       "endpoints": {
         "frota_municipio_tipo": {
@@ -311,7 +323,10 @@
         "API?": "CATÁLOGO",
         "Periodicidade": "Mensal",
         "O que baixar": "Transportadores, RNTRC, categoria, município, UF, CPF/CNPJ; veículos vinculados",
-        "Cruza com": "SENATRAN, Receita, DNIT, dados do cliente"
+        "Cruza com": "SENATRAN, Receita, DNIT, dados do cliente",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Portal e arquivos públicos do RNTRC/dados abertos."
       },
       "endpoints": {
         "catalogo": {
@@ -348,7 +363,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Varia por conjunto",
         "O que baixar": "Contagem de tráfego, condições do pavimento, pesagem, controle de velocidade, obras",
-        "Cruza com": "SENATRAN, ANTT, ANP, IBGE"
+        "Cruza com": "SENATRAN, ANTT, ANP, IBGE",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Conjuntos públicos; custo apenas de processamento/armazenamento."
       },
       "endpoints": {
         "contagem_de_trafego": {
@@ -396,7 +414,10 @@
         "API?": "SIM",
         "Periodicidade": "Conforme atualização da ANP",
         "O que baixar": "CNPJ, endereço, produtos, distribuidor, tancagem, situação, coordenadas quando disponíveis",
-        "Cruza com": "Receita, SENATRAN, DNIT, OSM"
+        "Cruza com": "Receita, SENATRAN, DNIT, OSM",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos / API pública",
+        "Observação de custo": "CSV e API pública para revendedores conforme documentação oficial."
       },
       "endpoints": {
         "combustivel": {
@@ -432,7 +453,10 @@
         "API?": "SIM",
         "Periodicidade": "Conforme atualização da ANP",
         "O que baixar": "CNPJ, endereço, produtos, distribuidor, tancagem, situação, coordenadas quando disponíveis",
-        "Cruza com": "Receita, SENATRAN, DNIT, OSM"
+        "Cruza com": "Receita, SENATRAN, DNIT, OSM",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos / API pública",
+        "Observação de custo": "CSV e API pública para revendedores conforme documentação oficial."
       },
       "endpoints": {
         "precos_combustiveis_semestre": {
@@ -462,7 +486,10 @@
         "API?": "NÃO",
         "Periodicidade": "Mensal / anual conforme base",
         "O que baixar": "Admissões, desligamentos, estoque de empregos, estabelecimentos, CNAE, ocupação, remuneração",
-        "Cruza com": "Receita, IBGE, Siconfi"
+        "Cruza com": "Receita, IBGE, Siconfi",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Microdados públicos",
+        "Observação de custo": "Microdados não identificados são públicos; bases identificadas podem exigir procedimento específico."
       },
       "endpoints": {
         "novo_caged_movimentacao": {
@@ -485,7 +512,10 @@
         "API?": "PARCIAL",
         "Periodicidade": "Mensal",
         "O que baixar": "NCM/SH4, país, município, UF, via, URF, quantidade, kg líquido, FOB, frete e seguro em importações",
-        "Cruza com": "Receita, ANTAQ, IBGE, World Bank, UN Comtrade"
+        "Cruza com": "Receita, ANTAQ, IBGE, World Bank, UN Comtrade",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Dados brutos e consultas públicas; custo apenas de processamento."
       },
       "endpoints": {
         "exportacao_importacao_ncm": {
@@ -519,7 +549,10 @@
         "API?": "PARCIAL",
         "Periodicidade": "Mensal",
         "O que baixar": "NCM/SH4, país, município, UF, via, URF, quantidade, kg líquido, FOB, frete e seguro em importações",
-        "Cruza com": "Receita, ANTAQ, IBGE, World Bank, UN Comtrade"
+        "Cruza com": "Receita, ANTAQ, IBGE, World Bank, UN Comtrade",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Dados brutos e consultas públicas; custo apenas de processamento."
       },
       "endpoints": {
         "ultima_atualizacao": {
@@ -540,7 +573,10 @@
         "API?": "SIM",
         "Periodicidade": "Diária/mensal conforme série",
         "O que baixar": "Juros, câmbio, crédito, inflação, indicadores financeiros e séries econômicas",
-        "Cruza com": "IBGE, dados internos, Comex Stat"
+        "Cruza com": "IBGE, dados internos, Comex Stat",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "API pública / dados abertos",
+        "Observação de custo": "Séries e datasets públicos."
       },
       "endpoints": {
         "selic_meta": {
@@ -593,7 +629,10 @@
         "API?": "CATÁLOGO",
         "Periodicidade": "Varia por dataset",
         "O que baixar": "Geração, empreendimentos, distribuição, tarifas, consumidores, energia distribuída",
-        "Cruza com": "IBGE, Receita, Siconfi"
+        "Cruza com": "IBGE, Receita, Siconfi",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Portal e recursos públicos."
       },
       "endpoints": {
         "catalogo": {
@@ -623,7 +662,10 @@
         "API?": "PARCIAL",
         "Periodicidade": "Mensal conforme tema",
         "O que baixar": "Banda larga, acessos móveis, tecnologia, prestadora, cobertura, densidade",
-        "Cruza com": "IBGE, Receita"
+        "Cruza com": "IBGE, Receita",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Arquivos e dados públicos; alguns serviços podem exigir fluxos específicos."
       },
       "endpoints": {
         "acessos_banda_larga_fixa": {
@@ -649,7 +691,10 @@
         "API?": "SIM",
         "Periodicidade": "Conforme demonstrativo",
         "O que baixar": "Receitas, despesas, balanços, MSC, dívida e informações fiscais de entes subnacionais",
-        "Cruza com": "IBGE, Compras.gov, SINISA"
+        "Cruza com": "IBGE, Compras.gov, SINISA",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "API pública",
+        "Observação de custo": "API aberta conforme documentação do Tesouro."
       },
       "endpoints": {
         "entes": {
@@ -707,7 +752,10 @@
         "API?": "SIM",
         "Periodicidade": "Contínua / conforme módulo",
         "O que baixar": "Licitações, contratos, fornecedores, itens, materiais, serviços, preços",
-        "Cruza com": "Receita, Siconfi, CGU"
+        "Cruza com": "Receita, Siconfi, CGU",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "API pública / dados abertos",
+        "Observação de custo": "Dados públicos; observar limites e documentação."
       },
       "endpoints": {
         "uasg": {
@@ -771,7 +819,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Mensal para Estatístico Aquaviário",
         "O que baixar": "Movimentação portuária, instalações, cargas, navegação, tonelagem e fluxos",
-        "Cruza com": "Comex Stat, Receita, IBGE"
+        "Cruza com": "Comex Stat, Receita, IBGE",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Downloads e estatísticas públicas."
       },
       "endpoints": {
         "estatistico_aquaviario_2026": {
@@ -794,7 +845,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Mensal/anual conforme conjunto",
         "O que baixar": "Aeroportos, voos, passageiros, cargas, aeronaves e movimentação aeroportuária",
-        "Cruza com": "Cadastur, IBGE, Receita"
+        "Cruza com": "Cadastur, IBGE, Receita",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Arquivos públicos."
       },
       "endpoints": {
         "transporte_aereo_estatisticas": {
@@ -817,7 +871,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Conforme publicação",
         "O que baixar": "Prestadores turísticos: meios de hospedagem, agências, transportadoras e categorias",
-        "Cruza com": "Receita, IBGE, ANAC"
+        "Cruza com": "Receita, IBGE, ANAC",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados públicos / consulta",
+        "Observação de custo": "Acesso público aos cadastros e publicações disponíveis."
       },
       "endpoints": {
         "catalogo": {
@@ -877,7 +934,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Mensal conforme base",
         "O que baixar": "Estabelecimentos, hospitais, clínicas, leitos, serviços, especialidades",
-        "Cruza com": "Receita, IBGE"
+        "Cruza com": "Receita, IBGE",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados públicos",
+        "Observação de custo": "Dados públicos do SUS/CNES; observar regras de uso e privacidade."
       },
       "endpoints": {
         "base_cnes_mensal": {
@@ -900,7 +960,10 @@
         "API?": "NÃO",
         "Periodicidade": "Anual conforme censo",
         "O que baixar": "Censo Escolar, Educação Superior, matrículas, instituições, cursos, Enem/Enade conforme conjunto",
-        "Cruza com": "IBGE, Receita"
+        "Cruza com": "IBGE, Receita",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Microdados públicos",
+        "Observação de custo": "Microdados e dicionários públicos; dados protegidos ficam fora."
       },
       "endpoints": {
         "censo_escolar": {
@@ -932,7 +995,10 @@
         "API?": "NÃO",
         "Periodicidade": "Anual",
         "O que baixar": "Água, esgoto, resíduos, drenagem, população atendida, redes, investimentos e indicadores",
-        "Cruza com": "IBGE, Siconfi"
+        "Cruza com": "IBGE, Siconfi",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados públicos",
+        "Observação de custo": "Planilhas e resultados públicos."
       },
       "endpoints": {
         "resultados_2025": {
@@ -955,7 +1021,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Mensal/safra conforme tema",
         "O que baixar": "Safras, produção, produtividade, estoques, armazenagem e preços",
-        "Cruza com": "IBGE, MapBiomas, INMET"
+        "Cruza com": "IBGE, MapBiomas, INMET",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados públicos",
+        "Observação de custo": "Planilhas e sistemas públicos."
       },
       "endpoints": {
         "serie_historica_graos": {
@@ -977,7 +1046,10 @@
         "API?": "NÃO VALIDADA",
         "Periodicidade": "Diária/horária conforme estação",
         "O que baixar": "Temperatura, chuva, vento, umidade, pressão e dados de estações",
-        "Cruza com": "CONAB, MapBiomas, logística, energia"
+        "Cruza com": "CONAB, MapBiomas, logística, energia",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados públicos",
+        "Observação de custo": "Dados históricos públicos; observar limites dos serviços."
       },
       "endpoints": {
         "dados_historicos": {
@@ -1000,7 +1072,10 @@
         "API?": "PARCIAL",
         "Periodicidade": "Anual / por coleção",
         "O que baixar": "Cobertura e uso da terra, agricultura, pastagem, urbano, água, fogo e outros temas",
-        "Cruza com": "IBGE, CONAB, INMET"
+        "Cruza com": "IBGE, CONAB, INMET",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos / GEE",
+        "Observação de custo": "Dados e coleções públicas; pode haver custos próprios de infraestrutura/GEE em uso intensivo."
       },
       "endpoints": {}
     },
@@ -1019,7 +1094,10 @@
         "API?": "SIM",
         "Periodicidade": "Contínua",
         "O que baixar": "Alertas de desmatamento e atributos territoriais",
-        "Cruza com": "IBGE, MapBiomas, clientes agro/ESG"
+        "Cruza com": "IBGE, MapBiomas, clientes agro/ESG",
+        "Custo": "GRATUITA COM CADASTRO",
+        "Modelo de acesso": "API autenticada",
+        "Observação de custo": "API requer autenticação; confirmar termos e limites na implementação."
       },
       "endpoints": {}
     },
@@ -1036,7 +1114,10 @@
         "API?": "SIM",
         "Periodicidade": "Atualização contínua",
         "O que baixar": "Rodovias, lojas, oficinas, hotéis, restaurantes, hospitais, POIs e geometrias",
-        "Cruza com": "Todas as bases territoriais"
+        "Cruza com": "Todas as bases territoriais",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos / API pública",
+        "Observação de custo": "Dados ODbL; respeitar atribuição e limites dos endpoints públicos."
       },
       "endpoints": {
         "postos_combustivel_sao_luis": {
@@ -1061,7 +1142,10 @@
         "API?": "CATÁLOGO",
         "Periodicidade": "Por eleição / atualizações",
         "O que baixar": "Eleitorado, candidaturas, votação, resultados e zonas/seções",
-        "Cruza com": "IBGE"
+        "Cruza com": "IBGE",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Arquivos e portal público."
       },
       "endpoints": {
         "catalogo": {
@@ -1091,7 +1175,10 @@
         "API?": "CATÁLOGO",
         "Periodicidade": "Mensal/trimestral conforme dataset",
         "O que baixar": "Companhias abertas, demonstrações, fundos, regulados e ofertas",
-        "Cruza com": "Receita, BCB"
+        "Cruza com": "Receita, BCB",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Recursos públicos do portal."
       },
       "endpoints": {
         "catalogo": {
@@ -1121,7 +1208,10 @@
         "API?": "CATÁLOGO",
         "Periodicidade": "Varia por dataset",
         "O que baixar": "Embargos, fiscalização, autorizações e bases ambientais abertas",
-        "Cruza com": "IBGE, MapBiomas, clientes agro/ESG"
+        "Cruza com": "IBGE, MapBiomas, clientes agro/ESG",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "Dados abertos",
+        "Observação de custo": "Recursos públicos do portal."
       },
       "endpoints": {
         "catalogo": {
@@ -1160,7 +1250,10 @@
         "API?": "SIM",
         "Periodicidade": "Diária/mensal conforme tema",
         "O que baixar": "Despesas, contratos, licitações, transferências, favorecidos, sanções, notas fiscais",
-        "Cruza com": "Compras.gov, Siconfi, Receita"
+        "Cruza com": "Compras.gov, Siconfi, Receita",
+        "Custo": "GRATUITA COM CADASTRO",
+        "Modelo de acesso": "API pública",
+        "Observação de custo": "Downloads são públicos; API pode exigir chave conforme política vigente."
       },
       "endpoints": {
         "orgaos_siafi": {
@@ -1185,7 +1278,10 @@
         "API?": "SIM",
         "Periodicidade": "Anual/mensal conforme indicador",
         "O que baixar": "PIB, população, renda, comércio, infraestrutura e milhares de indicadores internacionais",
-        "Cruza com": "Comex Stat, UN Comtrade, OECD"
+        "Cruza com": "Comex Stat, UN Comtrade, OECD",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "API pública",
+        "Observação de custo": "API pública sem chave para indicadores."
       },
       "endpoints": {
         "pib_brasil": {
@@ -1241,7 +1337,10 @@
         "API?": "SIM",
         "Periodicidade": "Mensal/anual",
         "O que baixar": "Importações/exportações por país, parceiro, HS e fluxo",
-        "Cruza com": "Comex Stat, World Bank, FAOSTAT"
+        "Cruza com": "Comex Stat, World Bank, FAOSTAT",
+        "Custo": "MISTA",
+        "Modelo de acesso": "Gratuita limitada + acesso ampliado",
+        "Observação de custo": "Há consultas/API gratuitas com limites; recursos ampliados podem depender de conta/plano."
       },
       "endpoints": {
         "exportacoes_brasil_2023_previa": {
@@ -1269,7 +1368,10 @@
         "API?": "SIM",
         "Periodicidade": "Anual / conforme domínio",
         "O que baixar": "Produção agrícola, alimentos, preços, uso da terra e indicadores internacionais",
-        "Cruza com": "CONAB, World Bank, UN Comtrade"
+        "Cruza com": "CONAB, World Bank, UN Comtrade",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "API / bulk download",
+        "Observação de custo": "Dados públicos; confirmar limites do portal de desenvolvedor."
       },
       "endpoints": {
         "producao_agricola": {
@@ -1292,7 +1394,10 @@
         "API?": "SIM",
         "Periodicidade": "Conforme dataset",
         "O que baixar": "Economia, produtividade, comércio, emprego, inovação e políticas públicas",
-        "Cruza com": "World Bank, Comex Stat, BCB"
+        "Cruza com": "World Bank, Comex Stat, BCB",
+        "Custo": "GRATUITA",
+        "Modelo de acesso": "API pública",
+        "Observação de custo": "Dados públicos via Data Explorer/SDMX."
       },
       "endpoints": {
         "pib_trimestral_crescimento": {
@@ -1318,7 +1423,29 @@
         "API?": "NÃO PÚBLICA",
         "Periodicidade": "Conforme contrato",
         "O que baixar": "Inteligência detalhada de importadores, embarques e fornecedores conforme produto contratado",
-        "Cruza com": "Comex Stat, Receita, ANTAQ"
+        "Cruza com": "Comex Stat, Receita, ANTAQ",
+        "Custo": "PAGA",
+        "Modelo de acesso": "Licença/assinatura comercial",
+        "Observação de custo": "Acesso detalhado depende do plano contratado; não foi identificada base completa gratuita para download."
+      },
+      "endpoints": {}
+    },
+    "senatran_renainf": {
+      "descricao": "SENATRAN / SERPRO - RENAINF e Consulta Online (WSDenatran)",
+      "base_url": "https://www.gov.br/conecta/catalogo/apis/wsdenatran",
+      "link_oficial": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-Senatran/sistema-renainf",
+      "observacoes": "Dados pessoais/restritos. Uso somente com base legal, autorização e vínculo legítimo com a frota/condutor. | Sem conjunto automático: é um serviço contratado, que exige autorização e credenciais/certificado do SERPRO. Fica cadastrado para referência; documentação em https://www.gov.br/conecta/catalogo/apis/wsdenatran",
+      "catalogo": {
+        "ID": "DH-034",
+        "Sinal de mercado": "Infrações / Gestão de frota",
+        "Prioridade": "MÉDIA",
+        "API?": "SIM RESTRITA",
+        "Periodicidade": "Tempo real / consulta",
+        "O que baixar": "Infrações associadas a veículo e, quando aplicável, condutor; dados de RENAVAM/RENACH/RENAINF conforme perfil autorizado",
+        "Cruza com": "Frota interna do cliente, SENATRAN, ANTT, telemetria, ERP de frota",
+        "Custo": "PAGA/RESTRITA",
+        "Modelo de acesso": "Contratação + autorização",
+        "Observação de custo": "Preço depende do serviço/contrato. Não tratar como base pública de prospecção."
       },
       "endpoints": {}
     }

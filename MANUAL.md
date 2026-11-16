@@ -69,7 +69,7 @@ site selecionado.
 | Aceitar certificado não reconhecido | Deixe desmarcado. Marque só se o site der erro de certificado e você confiar no endereço: isso desliga uma checagem de segurança da conexão |
 
 Os sites vindos do catálogo mostram também um quadro com ID, sinal de
-mercado, prioridade e o que baixar. A caixa **Buscar site** filtra a lista.
+mercado, prioridade, o que baixar e a classificação de custo. A caixa **Buscar site** filtra a lista.
 
 **Conjuntos de dados do site**
 
@@ -213,7 +213,7 @@ python baixar.py bcb selic       # só um conjunto
 
 ## 9. Fontes já cadastradas (Catálogo Mestre)
 
-As 33 fontes do catálogo estão cadastradas em 36 sites (IBGE, ANP e Comex
+As 34 fontes do catálogo (versão 2) estão cadastradas em 37 sites (IBGE, ANP e Comex
 Stat ocupam dois cada), com 110 conjuntos. Situação no teste feito em
 16/11/2026 contra os sites reais:
 
@@ -251,7 +251,8 @@ Stat ocupam dois cada), com 110 conjuntos. Situação no teste feito em
 | DH-030 | `un_comtrade` | API (prévia gratuita) | Testado |
 | DH-031 | `faostat` | Arquivo ZIP | Endereço conferido; download completo não feito |
 | DH-032 | `oecd` | API (CSV) | Testado |
-| DH-033 | `logcomex` | — | Só referência: fonte comercial |
+| DH-033 | `logcomex` | — | Só referência: fonte comercial paga |
+| DH-034 | `senatran_renainf` | — | Só referência: serviço contratado e restrito (SERPRO), com dados pessoais |
 
 "Não testado" significa que o endereço foi cadastrado mas não pôde ser
 conferido; use **Listar arquivos** ou **Testar conexão** na primeira vez. O

@@ -304,9 +304,9 @@ class TesteConectores(Base):
             fontes = json.load(f)["fontes"]
         for nome, fonte in fontes.items():
             con.validar_fonte(nome, fonte)
-        self.assertGreaterEqual(len(fontes), 33)
+        self.assertGreaterEqual(len(fontes), 34)
         ids = {f["catalogo"]["ID"] for f in fontes.values()}
-        self.assertEqual(ids, {f"DH-{i:03d}" for i in range(1, 34)})
+        self.assertEqual(ids, {f"DH-{i:03d}" for i in range(1, 35)})
 
 
 class TesteArmazenamento(Base):

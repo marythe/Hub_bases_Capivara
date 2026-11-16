@@ -66,7 +66,7 @@ python baixar.py bcb selic       # só um conjunto
 
 ## Fontes já cadastradas
 
-As 33 fontes do Catálogo Mestre (IBGE, Receita/CNPJ, SENATRAN, ANTT, DNIT,
+As 34 fontes do Catálogo Mestre (IBGE, Receita/CNPJ, SENATRAN, ANTT, DNIT,
 ANP, Comex Stat, Banco Central, Siconfi, Compras.gov e outras) já estão em
 `config/fontes.json`. A situação de teste de cada uma está na seção 9 do
 manual. Novas fontes são cadastradas pela tela, em "+ Novo site".
